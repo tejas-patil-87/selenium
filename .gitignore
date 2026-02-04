@@ -1,0 +1,7 @@
+/target/
+/bin/
+/logs/
+/screenshotzip/
+/reports/
+*.log
+*.tmp
