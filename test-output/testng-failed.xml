@@ -3,11 +3,18 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="tests.InvestmentApiTest">
+      <class name="tests.LoginTest">
         <methods>
-          <include name="verifyInvestmentRequestApi"/>
+          <include name="setUp"/>
+          <include name="tearDown"/>
+          <include name="afterSuite"/>
+          <include name="investFlowTest"/>
+          <include name="captureFailureScreenshot"/>
+          <include name="initPages"/>
+          <include name="cleanOldScreenshots"/>
+          <include name="loginTest"/>
         </methods>
-      </class> <!-- tests.InvestmentApiTest -->
+      </class> <!-- tests.LoginTest -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->

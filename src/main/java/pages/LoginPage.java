@@ -10,7 +10,7 @@ import org.openqa.selenium.support.PageFactory;
 public class LoginPage extends BasePage {
 
 	public LoginPage(WebDriver driver) {
-		super(driver); // ✅ BasePage initialised
+		super(driver); 
 		PageFactory.initElements(driver, this);
 	}
 
@@ -28,8 +28,6 @@ public class LoginPage extends BasePage {
 
 	@FindBy(xpath = "//button[contains(@class,'login-btn') and normalize-space()='Submit']")
 	public WebElement Submit;
-
-	// ... rest unchanged
 
 	@FindBy(xpath = "//input[@id='client-code']")
 	public WebElement clientCode;
@@ -60,8 +58,6 @@ public class LoginPage extends BasePage {
 
 	@FindBy(xpath = "//div[@class='fourblock ml15 hide-scrollbar']")
 	public WebElement panel;
-
-	// Min Investment value (₹5,00,000)
 
 	@FindBy(css = ".product-card")
 	public List<WebElement> productCards;

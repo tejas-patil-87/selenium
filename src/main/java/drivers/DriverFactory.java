@@ -21,7 +21,8 @@ public class DriverFactory {
 		String browser = ConfigReader.get("browser").toLowerCase();
 		switch (browser) {
 		case "chrome":
-			//String chromeVersion = WebDriverManager.chromedriver().getBrowserVersion();
+			// WebDriverManager.chromedriver().setup();
+			// String chromeVersion = WebDriverManager.chromedriver().getBrowserVersion();
 			WebDriverManager.chromedriver().browserVersion("144").clearDriverCache().clearResolutionCache().setup();
 			ChromeOptions chromeOptions = new ChromeOptions();
 			chromeOptions.addArguments("--start-maximized");
@@ -40,7 +41,7 @@ public class DriverFactory {
 		default:
 			throw new RuntimeException("Unsupported browser: " + browser);
 		}
-		getDriver().manage().window().maximize();
+		// getDriver().manage().window().maximize();
 		getDriver().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 		getDriver().get(ConfigReader.get("url"));
 	}
