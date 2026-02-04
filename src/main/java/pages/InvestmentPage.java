@@ -458,4 +458,16 @@ public class InvestmentPage extends BasePage {
 		}
 	}
 
+	@FindBy(css = "div.popup-success-modal")
+	private WebElement investmentSuccessPopup;
+
+	public boolean waitForInvestmentSuccessPopup(int timeoutSeconds) {
+		try {
+			waitHelper.waitForVisibility(investmentSuccessPopup, timeoutSeconds);
+			return investmentSuccessPopup.isDisplayed();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 }

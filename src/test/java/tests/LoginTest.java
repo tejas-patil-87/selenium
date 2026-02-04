@@ -97,7 +97,8 @@ public class LoginTest extends BaseTest {
 				"Mismatch in Available Amount displayed");
 		investmentPage.clickInvestNow();
 		investmentPage.investmentOTPLogic(loginPage);
-		waitHelper.staticWait(5);
+		waitHelper.staticWait(2);
+		Assert.assertTrue(investmentPage.waitForInvestmentSuccessPopup(30), "Investment Success popup did NOT appear");
 		int investmentAmount = Integer.parseInt(expectedInvestmentAmount.replace("₹", "").replace(",", "").trim());
 		Assert.assertTrue(DBUtils.isSubscriptionDataPresent(investmentAmount),
 				"Subscription data NOT found in tbl_Subscription for given ClientCode and Product");
