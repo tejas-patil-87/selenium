@@ -24,8 +24,6 @@ public class WaitHelper {
 		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds))
 				.until(ExpectedConditions.visibilityOf(element));
 	}
-	
-	
 
 	public WebElement waitForElementVisible(By locator, long timeoutSeconds) {
 		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds))
@@ -39,24 +37,40 @@ public class WaitHelper {
 				.until(ExpectedConditions.elementToBeClickable(locator));
 	}
 
-	public void click(WebElement element) {
-		wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+	public WebElement waitForClickableElement(WebElement element, int timeout) {
+		return new WebDriverWait(driver, Duration.ofSeconds(timeout))
+				.until(ExpectedConditions.elementToBeClickable(element));
 	}
 
 	public void click(By locator) {
 		wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
 	}
 
+	public void click(WebElement element) {
+		wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+	}
+
 	/* ================= TEXT ================= */
 
-	public String getText(WebElement element) {
-		wait.until(ExpectedConditions.visibilityOf(element));
+//	public String getTextByElement(WebElement element) {
+//		wait.until(ExpectedConditions.visibilityOf(element));
+//		return element.getText().trim();
+//	}
+
+	public String getTextByLocatorXpath(By locator) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+		return driver.findElement(locator).getText().trim();
+	}
+
+	public String getTextByElement(WebElement element, int timeout) {
+		waitForVisibility(element, timeout);
 		return element.getText().trim();
 	}
 
-	public String getText(By locator) {
-		wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-		return driver.findElement(locator).getText().trim();
+	public String getTextByLocator(By locator, long timeout) {
+		WebElement element = waitForElementVisible(locator, timeout);
+		return element.getText().trim();
+
 	}
 
 	/* ================= STATIC WAIT (ONLY THIS IS STATIC) ================= */
@@ -77,7 +91,7 @@ public class WaitHelper {
 				String text = el.getText().trim();
 				return text.isEmpty() ? null : text;
 			} catch (StaleElementReferenceException e) {
-				return null; 
+				return null;
 			}
 		});
 	}

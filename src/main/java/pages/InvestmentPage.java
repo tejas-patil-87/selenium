@@ -10,7 +10,10 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.testng.Assert;
-import utils.ElementUtil;
+import org.testng.asserts.SoftAssert;
+
+import utils.ConfigReader;
+import utils.DBUtils;
 import utils.UtilsMethod;
 
 public class InvestmentPage extends BasePage {
@@ -19,47 +22,6 @@ public class InvestmentPage extends BasePage {
 		super(driver);
 		PageFactory.initElements(driver, this);
 
-	}
-
-	public void handlePopupIfPresent(LoginPage loginPage, String expectedTitle) {
-
-		boolean switched = waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
-		Assert.assertTrue(switched, "Expected tab not found: " + expectedTitle);
-
-		try {
-			if (ElementUtil.isElementVisible(driver, loginPage.popUp, 5)) {
-				loginPage.closeButton.click();
-				System.out.println("Popup was present and closed");
-			}
-		} catch (TimeoutException e) {
-			System.out.println("Popup not present");
-		}
-	}
-
-	public boolean switchToTabByTitle(String expectedTitle) {
-
-		for (String window : driver.getWindowHandles()) {
-			driver.switchTo().window(window);
-			if (driver.getTitle().equalsIgnoreCase(expectedTitle)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public int getTabCount() {
-		return driver.getWindowHandles().size();
-	}
-
-	public List<String> getAllTabTitles() {
-		List<String> titles = new ArrayList<>();
-		String currentWindow = driver.getWindowHandle();
-		for (String window : driver.getWindowHandles()) {
-			driver.switchTo().window(window);
-			titles.add(driver.getTitle());
-		}
-		driver.switchTo().window(currentWindow);
-		return titles;
 	}
 
 	public static List<String> getProductTitles(List<WebElement> titleElements) {
@@ -73,131 +35,16 @@ public class InvestmentPage extends BasePage {
 		return titles;
 	}
 
-	@FindBy(xpath = "//div[contains(@class,'card_tooltip')]")
-	private List<WebElement> titleElements;
-
-	public void changeTabAndVerifyProduct(String expectedProduct) {
-		List<String> titles = InvestmentPage.getProductTitles(titleElements);
-		Assert.assertFalse(titles.isEmpty(), "No titles were extracted");
-		Assert.assertTrue(titles.contains(expectedProduct), "Expected title '" + expectedProduct + "' not found");
-	}
-	/*
-	 * @FindBy(xpath = "//div[text()='Min. Investment']/preceding-sibling::div")
-	 * public WebElement minInvestmentValue;
-	 * 
-	 * @FindBy(xpath = "//div[text()='Horizon']/preceding-sibling::div") public
-	 * WebElement horizonValue;
-	 */
-
-	private static final String PRODUCT_CARD_BY_TITLE = "//div[contains(@class,'product-card')][.//div[contains(@class,'card_tooltip') and @title='%s']]";
-
-	private static final By MIN_INVESTMENT_REL = By
-			.xpath(".//div[normalize-space()='Min. Investment']/preceding-sibling::div[1]");
-
-	private static final By HORIZON_REL = By.xpath(".//div[normalize-space()='Horizon']/preceding-sibling::div[1]");
-
-	public void validateInvestmentAndHorizonByProductTitle(String productTitle, String expectedMinInvestment,
-			String expectedHorizon) {
-		String cardXpath = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
-		By productCardBy = By.xpath(cardXpath);
-		WebElement productCard = waitHelper.waitForElementVisible(productCardBy, 15);
-		String actualMinInvestment = productCard.findElement(MIN_INVESTMENT_REL).getText().trim();
-		String actualHorizon = productCard.findElement(HORIZON_REL).getText().trim();
-		Assert.assertEquals(actualMinInvestment, expectedMinInvestment,
-				"Min Investment mismatch for product: " + productTitle);
-		Assert.assertEquals(actualHorizon, expectedHorizon, "Horizon mismatch for product: " + productTitle);
-	}
-
-	public static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
-
-	public void clickInvestNowByProductTitle(String productTitle) {
-
-		if (productTitle == null || productTitle.trim().isEmpty()) {
-			throw new RuntimeException("Product title is null or empty. Check config.properties");
-		}
-
-		String finalXpath = String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle);
-		By investNowBy = By.xpath(finalXpath);
-		By productCardBy = By
-				.xpath(String.format("//div[contains(@class,'product-card')][.//div[@title='%s']]", productTitle));
-		waitHelper.waitForElementVisible(productCardBy, 20);
-		UtilsMethod.scrollIntoView(driver, investNowBy);
-		try {
-			WebElement investNowBtn = waitHelper.waitForClickable(investNowBy, 20);
-			investNowBtn.click();
-		} catch (Exception e) {
-			UtilsMethod.clickWithJS(driver, investNowBy);
-		}
-	}
-
-	public void clickInvestNow(String productName) {
-		driver.findElement(By.xpath(String.format(INVEST_NOW_BY_TITLE_XPATH, productName))).click();
-	}
-
-	public String fetchCurrentValue(WebElement currentValueText, int waitTimeInSeconds) {
-		waitHelper.waitForVisibility(currentValueText, waitTimeInSeconds);
-		return currentValueText.getText().trim();
-	}
-
-	private String getText(WebElement element) {
-		waitHelper.waitForVisibility(element, 5);
-		return element.getText().trim();
-	}
-
-	public String getMinInvestment(WebElement minInvestmentValue) {
-		return getText(minInvestmentValue);
-	}
-
-	public String getHorizon(WebElement horizonValue) {
-		return getText(horizonValue);
-	}
-
-	public String getInceptionDate(WebElement inceptionDateValue) {
-		return getText(inceptionDateValue);
-	}
-
-	public String getBenchmark(WebElement benchmarkValue) {
-		return getText(benchmarkValue);
-	}
-
-	public String getMethodology(WebElement methodologyValue) {
-		return getText(methodologyValue);
-	}
-
-	public String getTextValue(By locator, long timeoutSeconds) {
-		WebElement element = waitHelper.waitForElementVisible(locator, timeoutSeconds);
-		return element.getText().trim();
-	}
-
-	@FindBy(xpath = "//div[contains(@class,'currt-bal')]//h5")
-	public WebElement currentValueText;
-
-	@FindBy(xpath = "//p[text()='Min Investment']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement min_InvestmentValue;
-
-	@FindBy(xpath = "//p[text()='Horizon']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement horizon_Value;
-
-	@FindBy(xpath = "//p[text()='Inception Date']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement inceptionDateValue;
-
-	@FindBy(xpath = "//p[text()='Benchmark']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement benchmarkValue;
-
-	@FindBy(xpath = "//p[text()='Methodology']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement methodologyValue;
-
-	public By noOfStocksValue = By.xpath("//p[normalize-space()='No. of Stocks']"
-			+ "/ancestor::div[contains(@class,'twoblock')]" + "//div[@class='col text-right']//p");
-
-	@FindBy(xpath = "//a[normalize-space()='Invest Lumpsum']")
-	public WebElement InvestLumpsum;
 
 	@FindBy(xpath = "//div[contains(@class,'lumpsum-popup')]")
 	private WebElement investLumpsumPopup;
 
 	@FindBy(xpath = "//button[normalize-space()='Next']")
-	public WebElement clickNextButton;
+	public WebElement investmentAmountNextBtn;
+
+	public void proceedFromInvestmentAmountPopup() {
+		waitHelper.waitForClickableElement(investmentAmountNextBtn, 10).click();
+	}
 
 	@FindBy(xpath = "//h4[contains(normalize-space(),'How much you’d like to Invest')]")
 	private WebElement investLumpsumPopupTitle;
@@ -220,45 +67,49 @@ public class InvestmentPage extends BasePage {
 		}
 	}
 
-	public WebElement getAmountButton(int index) {
-		String dynamicXpath = "//button[@id='" + index + "']";
-		return driver.findElement(By.xpath(dynamicXpath));
+	private By amountButtonBy(int index) {
+		return By.xpath("//button[@id='" + index + "']");
 	}
 
-	public void validateInvestmentButtons(String baseAmountText) {
-		// String baseAmountText = ; // ₹5,00,000
-		waitHelper.staticWait(2);
-		int baseAmount = Integer.parseInt(baseAmountText.replace("₹", "").replace(",", "").trim());
-		for (int i = 1; i <= 3; i++) {
-			int expectedValue = baseAmount * i;
-			WebElement button = getAmountButton(i);
-			String actualText = button.getText().replace("₹", "").replace(",", "").trim();
-			Assert.assertEquals(Integer.parseInt(actualText), expectedValue, "Mismatch for button id=" + i);
+	private WebElement getAmountButton(int index) {
+		return waitHelper.waitForClickable(amountButtonBy(index), 10);
+	}
+
+//	private int parseAmount(String amountText) {
+//		return Integer.parseInt(amountText.replace("₹", "").replace(",", "").trim());
+//	}
+
+	public void assertInvestmentAmountButtons(String baseAmountText) {
+		int baseAmount = UtilsMethod.parseAmount(baseAmountText);
+		for (int multiplier = 1; multiplier <= 3; multiplier++) {
+			int expectedAmount = baseAmount * multiplier;
+			WebElement button = getAmountButton(multiplier);
+			int actualAmount = UtilsMethod.parseAmount(button.getText());
+			Assert.assertEquals(actualAmount, expectedAmount,
+					"Mismatch for investment amount button with multiplier: " + multiplier);
 		}
 	}
 
-	public void clickAmountButton(int index) {
-		WebElement amountButton = driver.findElement(By.xpath("//button[@id='" + index + "']"));
-		amountButton.click();
+	private void clickAmountButton(int index) {
+		waitHelper.waitForClickable(amountButtonBy(index), 10).click();
 	}
 
-	private String formatToIndianCurrency(int amount) {
-		String s = String.valueOf(amount);
-		String last3 = s.substring(s.length() - 3);
-		String rest = s.substring(0, s.length() - 3);
-		if (!rest.isEmpty()) {
-			rest = rest.replaceAll("\\B(?=(\\d{2})+(?!\\d))", ",");
-			return "₹" + rest + "," + last3;
-		}
-		return "₹" + last3;
-	}
+//	private String formatToIndianCurrency(int amount) {
+//		String s = String.valueOf(amount);
+//		String last3 = s.substring(s.length() - 3);
+//		String rest = s.substring(0, s.length() - 3);
+//		if (!rest.isEmpty()) {
+//			rest = rest.replaceAll("\\B(?=(\\d{2})+(?!\\d))", ",");
+//			return "₹" + rest + "," + last3;
+//		}
+//		return "₹" + last3;
+//	}
 
-	public String clickAmountButtonAndGetExpectedAmount(int index, String baseAmountFromConfig) {
-		int baseAmount = Integer.parseInt(baseAmountFromConfig.replace("₹", "").replace(",", "").trim());
-		int expectedAmount = baseAmount * index;
-		By amountBtn = By.xpath("//button[@id='" + index + "']");
-		waitHelper.waitForClickable(amountBtn, 5).click();
-		return formatToIndianCurrency(expectedAmount);
+	public String selectAmountAndGetExpectedAmount(int multiplier, String baseAmountText) {
+		int baseAmount = UtilsMethod.parseAmount(baseAmountText);
+		int expectedAmount = baseAmount * multiplier;
+		clickAmountButton(multiplier);
+		return UtilsMethod.formatToIndianCurrency(expectedAmount);
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-innerbox')]//h4[contains(text(),'Activation')]")
@@ -274,66 +125,29 @@ public class InvestmentPage extends BasePage {
 	}
 
 	@FindBy(xpath = "//a[contains(@class,'cta-fixed-bottom') and normalize-space()='Next']")
-	public WebElement nextCTA;
+	public WebElement ActivationModelNextButton;
 
-	public void clickNextButton() {
-		nextCTA.click();
+	public void clickActivationModelNextButton() {
+		waitHelper.waitForClickableElement(ActivationModelNextButton, 10).click();
 	}
 
-	public class ProductDetails {
+	public void assertActivationModelUI() {
 
-		private final String currentValue;
-		private final String minInvestment;
-		private final String horizon;
-		private final String inceptionDate;
-		private final String benchmark;
-		private final String methodology;
-		private final String noOfStocks;
+		SoftAssert sa = new SoftAssert();
 
-		public ProductDetails(String currentValue, String minInvestment, String horizon, String inceptionDate,
-				String benchmark, String methodology, String noOfStocks) {
-			this.currentValue = currentValue;
-			this.minInvestment = minInvestment;
-			this.horizon = horizon;
-			this.inceptionDate = inceptionDate;
-			this.benchmark = benchmark;
-			this.methodology = methodology;
-			this.noOfStocks = noOfStocks;
-		}
+		sa.assertTrue(isActivationModelVisible(), "Activation Model is not Visible");
 
-		public String getCurrentValue() {
-			return currentValue;
-		}
+		sa.assertTrue(isListIconDisplayed(), "List icon is NOT displayed");
 
-		public String getMinInvestment() {
-			return minInvestment;
-		}
+		sa.assertEquals(getPortfolioDescriptionText(), ConfigReader.get("activation.modle.description"),
+				"Portfolio description text mismatch");
 
-		public String getHorizon() {
-			return horizon;
-		}
+		sa.assertEquals(getStandardBrokerageText(), ConfigReader.get("standard.brokerage"),
+				"Standard Brokerage text mismatch");
 
-		public String getInceptionDate() {
-			return inceptionDate;
-		}
+		sa.assertEquals(getNextButtonText(), ConfigReader.get("cta.next.text"), "CTA button text mismatch");
 
-		public String getBenchmark() {
-			return benchmark;
-		}
-
-		public String getMethodology() {
-			return methodology;
-		}
-
-		public String getNoOfStocks() {
-			return noOfStocks;
-		}
-	}
-
-	public ProductDetails fetchProductDetails() {
-		return new ProductDetails(getText(currentValueText), getText(min_InvestmentValue), getText(horizon_Value),
-				getText(inceptionDateValue), getText(benchmarkValue), getText(methodologyValue),
-				getTextValue(noOfStocksValue, 5));
+		sa.assertAll(); // VERY IMPORTANT
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//div[contains(@class,'list-icon')]")
@@ -368,55 +182,63 @@ public class InvestmentPage extends BasePage {
 		return nextCtaButton.getText().trim();
 	}
 
-	@FindBy(xpath = "//div[contains(@class,'popup-inner') and contains(@class,'investment-modal')]")
-	private WebElement investmentModel;
-
-	public boolean isInvestmentModelVisible() {
-		try {
-			waitHelper.waitForVisibility(investmentModel, 10);
-			return investmentModel.isDisplayed();
-		} catch (TimeoutException e) {
-			return false;
-		}
-	}
+//	@FindBy(xpath = "//div[contains(@class,'popup-inner') and contains(@class,'investment-modal')]")
+//	private WebElement investmentModel;
 
 	private By valueByLabel(String labelText) {
 		return By.xpath("//p[normalize-space()='" + labelText + "']" + "/ancestor::div[contains(@class,'ria-textcal')]"
 				+ "//*[contains(@class,'text-right')]");
 	}
 
-//	public String getInvestmentAmount() {
-//
-//		return elementUtil.getText(valueByLabel("Investment amount"));
-//	}
-
 	public String getSubscriptionAmount() {
-		return elementUtil.getText(valueByLabel("Subscription amount"));
+		return waitHelper.getTextByLocatorXpath(valueByLabel("Subscription amount"));
 	}
 
 	public String getGstAmount() {
-		return elementUtil.getText(valueByLabel("GST (18%)"));
+		return waitHelper.getTextByLocatorXpath(valueByLabel("GST (18%)"));
 	}
 
 	public String getRequiredMargin() {
-		return elementUtil.getText(valueByLabel("Required Margin"));
+		return waitHelper.getTextByLocatorXpath(valueByLabel("Required Margin"));
 	}
 
 	public String getAvailableAmount() {
-		return elementUtil.getText(valueByLabel("Available"));
+		return waitHelper.getTextByLocatorXpath(valueByLabel("Available"));
 	}
 
-	private By investmentAmountBy = By.xpath("//p[normalize-space()='Investment amount']"
+	// INVEST_NOW_BY_TITLE_XPATH
+	private By INVESTMENT_AMOUNT_BY = By.xpath("//p[normalize-space()='Investment amount']"
 			+ "/following-sibling::div//div[contains(@class,'invest-bold')]");
 
 	public String getInvestmentAmount(String expectedAmount) {
-		return waitHelper.waitForTextToBe(investmentAmountBy, expectedAmount, 15);
+		return waitHelper.waitForTextToBe(INVESTMENT_AMOUNT_BY, expectedAmount, 15);
+	}
+
+	public void assertInvestmentSummary(String expectedInvestmentAmount) {
+		// ---
+		System.out.println("Investment Amount  : " + getInvestmentAmount(expectedInvestmentAmount));
+		System.out.println("Subscription Amount: " + getSubscriptionAmount());
+		System.out.println("GST Amount         : " + getGstAmount());
+		System.out.println("Required Margin    : " + getRequiredMargin());
+		System.out.println("Available Amount   : " + getAvailableAmount());
+		SoftAssert sa = new SoftAssert();
+		sa.assertEquals(getInvestmentAmount(expectedInvestmentAmount), expectedInvestmentAmount,
+				"Mismatch in Investment Amount displayed");
+		sa.assertEquals(getSubscriptionAmount(), ConfigReader.get("expected.subscription.amount"),
+				"Mismatch in Subscription Amount displayed");
+		sa.assertEquals(getGstAmount(), ConfigReader.get("expected.gst.amount"), "Mismatch in GST Amount displayed");
+		sa.assertEquals(getRequiredMargin(), ConfigReader.get("expected.required.margin"),
+				"Mismatch in Required Margin displayed");
+		sa.assertEquals(getAvailableAmount(), ConfigReader.get("expected.available.amount"),
+				"Mismatch in Available Amount displayed");
+		sa.assertAll();
 	}
 
 	@FindBy(xpath = "//button[normalize-space()='Invest Now']")
 	private WebElement InvestNow;
 
-	public void clickInvestNow() {
+//click on investment now 
+	public void clickConfirInvestmentInvestNow() {
 		try {
 			if (waitHelper.isElementVisibleByWebelement(InvestNow, 5)) {
 				waitHelper.click(InvestNow);
@@ -447,8 +269,8 @@ public class InvestmentPage extends BasePage {
 	@FindBy(css = "div.otp-inner-boxes input")
 	private List<WebElement> otpInputs;
 
-	public void investmentOTPLogic(LoginPage loginPage) {
-		loginPage.fillOTP(otpInputs, "9");
+	public void investmentOTPLogic() {
+		UtilsMethod.fillOTP(otpInputs, "9");
 		waitHelper.isElementVisibleByWebelement(verifyOtpBtn, 5);
 		boolean isReady = waitHelper.isElementEnabledbyWebelement(verifyOtpBtn, 25);
 		if (isReady) {
@@ -456,6 +278,18 @@ public class InvestmentPage extends BasePage {
 		} else {
 			Assert.fail("Verify OTP button was not ready");
 		}
+	}
+
+//remove form pom
+	public void assertInvestmentSuccess(String expectedInvestmentAmount, int popupWaitTimeInSec) {
+		SoftAssert sa = new SoftAssert();
+		sa.assertTrue(waitForInvestmentSuccessPopup(popupWaitTimeInSec), "Investment Success popup did NOT appear");
+		// int investmentAmount = Integer.parseInt(expectedInvestmentAmount.replace("₹",
+		// "").replace(",", "").trim());
+		int investmentAmount = UtilsMethod.parseAmount(expectedInvestmentAmount);
+		sa.assertTrue(DBUtils.isSubscriptionDataPresent(investmentAmount),
+				"Subscription data NOT found in tbl_Subscription for given ClientCode and Product");
+		sa.assertAll();
 	}
 
 	@FindBy(css = "div.popup-success-modal")
