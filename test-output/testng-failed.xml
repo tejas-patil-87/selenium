@@ -8,11 +8,12 @@
           <include name="setUp"/>
           <include name="tearDown"/>
           <include name="afterSuite"/>
+          <include name="ProductFlowTest"/>
           <include name="investFlowTest"/>
           <include name="captureFailureScreenshot"/>
-          <include name="initPages"/>
           <include name="cleanOldScreenshots"/>
           <include name="loginTest"/>
+          <include name="initPages"/>
         </methods>
       </class> <!-- tests.LoginTest -->
     </classes>

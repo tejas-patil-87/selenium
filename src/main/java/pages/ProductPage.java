@@ -27,6 +27,9 @@ public class ProductPage extends BasePage {
 	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div/div[1]/div/a")
 	public WebElement closeButton;
 
+	@FindBy(xpath = "//div[contains(@class,'card_tooltip')]")
+	private List<WebElement> titleElements;
+
 	public void handlePopupIfPresent(String expectedTitle) {
 
 		boolean switched = waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
@@ -40,9 +43,6 @@ public class ProductPage extends BasePage {
 			System.out.println("Popup not present");
 		}
 	}
-
-	@FindBy(xpath = "//div[contains(@class,'card_tooltip')]")
-	private List<WebElement> titleElements;
 
 	public void changeTabAndVerifyProduct(String expectedProduct) {
 		List<String> titles = InvestmentPage.getProductTitles(titleElements);
@@ -71,11 +71,9 @@ public class ProductPage extends BasePage {
 	public static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
 
 	public void clickInvestNowByProductTitle(String productTitle) {
-
 		if (productTitle == null || productTitle.trim().isEmpty()) {
 			throw new RuntimeException("Product title is null or empty. Check config.properties");
 		}
-
 		String finalXpath = String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle);
 		By INVEST_NOW_BY = By.xpath(finalXpath);
 		By productCardBy = By
@@ -175,7 +173,7 @@ public class ProductPage extends BasePage {
 				waitHelper.getTextByElement(inceptionDateValue, 5), waitHelper.getTextByElement(benchmarkValue, 5),
 				waitHelper.getTextByElement(methodologyValue, 5), waitHelper.getTextByLocator(NO_OF_STOCKS_VALUE, 5));
 
-		System.out.println("Fetched Product Details: " + details);
+		// System.out.println("Fetched Product Details: " + details);
 		return details;
 	}
 

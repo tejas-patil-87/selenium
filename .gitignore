@@ -3,5 +3,6 @@
 /logs/
 /screenshotzip/
 /reports/
+/test-output/
 *.log
 *.tmp

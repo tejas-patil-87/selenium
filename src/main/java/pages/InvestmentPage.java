@@ -35,7 +35,6 @@ public class InvestmentPage extends BasePage {
 		return titles;
 	}
 
-
 	@FindBy(xpath = "//div[contains(@class,'lumpsum-popup')]")
 	private WebElement investLumpsumPopup;
 
@@ -75,10 +74,6 @@ public class InvestmentPage extends BasePage {
 		return waitHelper.waitForClickable(amountButtonBy(index), 10);
 	}
 
-//	private int parseAmount(String amountText) {
-//		return Integer.parseInt(amountText.replace("₹", "").replace(",", "").trim());
-//	}
-
 	public void assertInvestmentAmountButtons(String baseAmountText) {
 		int baseAmount = UtilsMethod.parseAmount(baseAmountText);
 		for (int multiplier = 1; multiplier <= 3; multiplier++) {
@@ -93,17 +88,6 @@ public class InvestmentPage extends BasePage {
 	private void clickAmountButton(int index) {
 		waitHelper.waitForClickable(amountButtonBy(index), 10).click();
 	}
-
-//	private String formatToIndianCurrency(int amount) {
-//		String s = String.valueOf(amount);
-//		String last3 = s.substring(s.length() - 3);
-//		String rest = s.substring(0, s.length() - 3);
-//		if (!rest.isEmpty()) {
-//			rest = rest.replaceAll("\\B(?=(\\d{2})+(?!\\d))", ",");
-//			return "₹" + rest + "," + last3;
-//		}
-//		return "₹" + last3;
-//	}
 
 	public String selectAmountAndGetExpectedAmount(int multiplier, String baseAmountText) {
 		int baseAmount = UtilsMethod.parseAmount(baseAmountText);
@@ -147,7 +131,7 @@ public class InvestmentPage extends BasePage {
 
 		sa.assertEquals(getNextButtonText(), ConfigReader.get("cta.next.text"), "CTA button text mismatch");
 
-		sa.assertAll(); // VERY IMPORTANT
+		sa.assertAll();
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//div[contains(@class,'list-icon')]")
@@ -182,9 +166,6 @@ public class InvestmentPage extends BasePage {
 		return nextCtaButton.getText().trim();
 	}
 
-//	@FindBy(xpath = "//div[contains(@class,'popup-inner') and contains(@class,'investment-modal')]")
-//	private WebElement investmentModel;
-
 	private By valueByLabel(String labelText) {
 		return By.xpath("//p[normalize-space()='" + labelText + "']" + "/ancestor::div[contains(@class,'ria-textcal')]"
 				+ "//*[contains(@class,'text-right')]");
@@ -215,12 +196,13 @@ public class InvestmentPage extends BasePage {
 	}
 
 	public void assertInvestmentSummary(String expectedInvestmentAmount) {
-		// ---
+
 		System.out.println("Investment Amount  : " + getInvestmentAmount(expectedInvestmentAmount));
 		System.out.println("Subscription Amount: " + getSubscriptionAmount());
 		System.out.println("GST Amount         : " + getGstAmount());
 		System.out.println("Required Margin    : " + getRequiredMargin());
 		System.out.println("Available Amount   : " + getAvailableAmount());
+
 		SoftAssert sa = new SoftAssert();
 		sa.assertEquals(getInvestmentAmount(expectedInvestmentAmount), expectedInvestmentAmount,
 				"Mismatch in Investment Amount displayed");
@@ -230,14 +212,14 @@ public class InvestmentPage extends BasePage {
 		sa.assertEquals(getRequiredMargin(), ConfigReader.get("expected.required.margin"),
 				"Mismatch in Required Margin displayed");
 		sa.assertEquals(getAvailableAmount(), ConfigReader.get("expected.available.amount"),
-				"Mismatch in Available Amount displayed");
+				"Mismatch in Available Margin Amount displayed");
 		sa.assertAll();
 	}
 
 	@FindBy(xpath = "//button[normalize-space()='Invest Now']")
 	private WebElement InvestNow;
 
-//click on investment now 
+	// click on investment now
 	public void clickConfirInvestmentInvestNow() {
 		try {
 			if (waitHelper.isElementVisibleByWebelement(InvestNow, 5)) {
@@ -252,20 +234,14 @@ public class InvestmentPage extends BasePage {
 	private WebElement verifyOtpBtn;
 
 	public boolean clickVerifyOtpIfReady() {
-
-		// boolean isVisible = waitHelper.isElementVisibleByWebelement(verifyOtpBtn,
-		// 15);
 		boolean isEnabled = waitHelper.isElementEnabledbyWebelement(verifyOtpBtn, 15);
-
 		if (isEnabled) {
 			waitHelper.waitForElementToBeClickableByWebelement(verifyOtpBtn, 10);
 			return true;
 		}
-
 		return false;
 	}
 
-	// OTP input boxes (6 digits)
 	@FindBy(css = "div.otp-inner-boxes input")
 	private List<WebElement> otpInputs;
 
@@ -275,17 +251,16 @@ public class InvestmentPage extends BasePage {
 		boolean isReady = waitHelper.isElementEnabledbyWebelement(verifyOtpBtn, 25);
 		if (isReady) {
 			verifyOtpBtn.click();
+			waitHelper.staticWait(2);
 		} else {
 			Assert.fail("Verify OTP button was not ready");
 		}
 	}
 
-//remove form pom
+	// remove form pom
 	public void assertInvestmentSuccess(String expectedInvestmentAmount, int popupWaitTimeInSec) {
 		SoftAssert sa = new SoftAssert();
 		sa.assertTrue(waitForInvestmentSuccessPopup(popupWaitTimeInSec), "Investment Success popup did NOT appear");
-		// int investmentAmount = Integer.parseInt(expectedInvestmentAmount.replace("₹",
-		// "").replace(",", "").trim());
 		int investmentAmount = UtilsMethod.parseAmount(expectedInvestmentAmount);
 		sa.assertTrue(DBUtils.isSubscriptionDataPresent(investmentAmount),
 				"Subscription data NOT found in tbl_Subscription for given ClientCode and Product");

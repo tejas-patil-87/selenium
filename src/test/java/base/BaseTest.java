@@ -54,7 +54,7 @@ public class BaseTest {
 		try {
 			@SuppressWarnings("unused")
 			String body = EmailUtil.prepareEmailBody(FrameworkConstants.HTMLBODY);
-			// System.out.println(body);
+			System.out.println(body);
 			// EmailUtil.sendExecutionReportEmail(body);
 
 		} catch (Exception e) {

@@ -7,18 +7,16 @@ import pages.InvestmentPage;
 import pages.LoginPage;
 import pages.ProductPage;
 import utils.ConfigReader;
-import utils.WaitHelper;
 
 public class LoginTest extends BaseTest {
 	private LoginPage loginPage;
-	protected WaitHelper waitHelper;
+
 	protected InvestmentPage investmentPage;
 	protected ProductPage productPage;
 
 	@BeforeClass
 	public void initPages() {
 		loginPage = new LoginPage(driver);
-		waitHelper = new WaitHelper(driver);
 		investmentPage = new InvestmentPage(driver);
 		productPage = new ProductPage(driver);
 	}
@@ -60,7 +58,6 @@ public class LoginTest extends BaseTest {
 		investmentPage.assertInvestmentSummary(expectedInvestmentAmount);
 		investmentPage.clickConfirInvestmentInvestNow();
 		investmentPage.investmentOTPLogic();
-		waitHelper.staticWait(2);
 		investmentPage.assertInvestmentSuccess(expectedInvestmentAmount, 30);
 
 		System.out.println("---------------New Investment Completed---------------");

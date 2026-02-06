@@ -56,6 +56,7 @@ public class TestListener implements ITestListener {
 
 	@Override
 	public void onTestSkipped(ITestResult result) {
+		testThread.get().skip("Test Skipped: " + result.getThrowable());
 		ExecutionSummary.skipped++;
 	}
 
