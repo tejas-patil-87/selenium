@@ -3,7 +3,6 @@ package pages;
 import java.util.List;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -22,25 +21,19 @@ public class ProductPage extends BasePage {
 	}
 
 	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div")
-	public WebElement popUp;
+	private WebElement popUp;
 
 	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div/div[1]/div/a")
-	public WebElement closeButton;
+	private WebElement closeButton;
 
 	@FindBy(xpath = "//div[contains(@class,'card_tooltip')]")
 	private List<WebElement> titleElements;
 
 	public void handlePopupIfPresent(String expectedTitle) {
-
-		boolean switched = waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
-		Assert.assertTrue(switched, "Expected tab not found: " + expectedTitle);
-		try {
-			if (waitHelper.isElementVisibleByWebelement(popUp, 5)) {
-				closeButton.click();
-				System.out.println("Popup was present and closed");
-			}
-		} catch (TimeoutException e) {
-			System.out.println("Popup not present");
+		Assert.assertTrue(waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5),
+				"Expected tab not found: " + expectedTitle);
+		if (waitHelper.isElementVisible(popUp, 5)) {
+			waitHelper.click(closeButton, 5);
 		}
 	}
 
@@ -59,32 +52,30 @@ public class ProductPage extends BasePage {
 
 	public void verifyProductCardDetails(String productTitle, String expectedMinInvestment, String expectedHorizon) {
 		String cardXpath = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
-		By PRODUCTCARD_BY = By.xpath(cardXpath);
-		WebElement productCard = waitHelper.waitForElementVisible(PRODUCTCARD_BY, 15);
-		String actualMinInvestment = productCard.findElement(MIN_INVESTMENT_REL).getText().trim();
-		String actualHorizon = productCard.findElement(HORIZON_REL).getText().trim();
+		By productCardBy = By.xpath(cardXpath);
+		WebElement productCard = waitHelper.waitForVisibility(productCardBy, 10);
+		String actualMinInvestment = waitHelper.getText(productCard, MIN_INVESTMENT_REL, 2);
+		String actualHorizon = waitHelper.getText(productCard, HORIZON_REL, 2);
 		Assert.assertEquals(actualMinInvestment, expectedMinInvestment,
 				"Min Investment mismatch for product: " + productTitle);
 		Assert.assertEquals(actualHorizon, expectedHorizon, "Horizon mismatch for product: " + productTitle);
 	}
 
 	public static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
+	public static final String PRODUCT_CARD = "//div[contains(@class,'product-card')][.//div[@title='%s']]";
 
 	public void clickInvestNowByProductTitle(String productTitle) {
 		if (productTitle == null || productTitle.trim().isEmpty()) {
-			throw new RuntimeException("Product title is null or empty. Check config.properties");
+			throw new IllegalArgumentException("Product title is null or empty");
 		}
-		String finalXpath = String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle);
-		By INVEST_NOW_BY = By.xpath(finalXpath);
-		By productCardBy = By
-				.xpath(String.format("//div[contains(@class,'product-card')][.//div[@title='%s']]", productTitle));
-		waitHelper.waitForElementVisible(productCardBy, 20);
-		UtilsMethod.scrollIntoView(driver, INVEST_NOW_BY);
-		try {
-			WebElement investNowBtn = waitHelper.waitForClickable(INVEST_NOW_BY, 20);
-			investNowBtn.click();
-		} catch (Exception e) {
-			UtilsMethod.clickWithJS(driver, INVEST_NOW_BY);
+		By PRODUCTCARDBY = By.xpath(String.format(PRODUCT_CARD, productTitle));
+		By INVESTNOWBY = By.xpath(String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle));
+		waitHelper.waitForVisibility(PRODUCTCARDBY, 10);
+		UtilsMethod.scrollIntoView(driver, INVESTNOWBY);
+		if (waitHelper.isElementEnabled(INVESTNOWBY, 5)) {
+			waitHelper.click(INVESTNOWBY, 5);
+		} else {
+			UtilsMethod.clickWithJS(driver, INVESTNOWBY);
 		}
 	}
 
@@ -146,32 +137,32 @@ public class ProductPage extends BasePage {
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'currt-bal')]//h5")
-	public WebElement currentValueText;
+	private WebElement currentValueText;
 
 	@FindBy(xpath = "//p[text()='Min Investment']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement min_InvestmentValue;
+	private WebElement min_InvestmentValue;
 
 	@FindBy(xpath = "//p[text()='Horizon']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement horizon_Value;
+	private WebElement horizon_Value;
 
 	@FindBy(xpath = "//p[text()='Inception Date']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement inceptionDateValue;
+	private WebElement inceptionDateValue;
 
 	@FindBy(xpath = "//p[text()='Benchmark']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement benchmarkValue;
+	private WebElement benchmarkValue;
 
 	@FindBy(xpath = "//p[text()='Methodology']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	public WebElement methodologyValue;
+	private WebElement methodologyValue;
 
-	public By NO_OF_STOCKS_VALUE = By.xpath("//p[normalize-space()='No. of Stocks']"
+	private By NO_OF_STOCKS_VALUE = By.xpath("//p[normalize-space()='No. of Stocks']"
 			+ "/ancestor::div[contains(@class,'twoblock')]" + "//div[@class='col text-right']//p");
 
 	public ProductDetails fetchProductDetails() {
 
-		ProductDetails details = new ProductDetails(waitHelper.getTextByElement(currentValueText, 5),
-				waitHelper.getTextByElement(min_InvestmentValue, 5), waitHelper.getTextByElement(horizon_Value, 5),
-				waitHelper.getTextByElement(inceptionDateValue, 5), waitHelper.getTextByElement(benchmarkValue, 5),
-				waitHelper.getTextByElement(methodologyValue, 5), waitHelper.getTextByLocator(NO_OF_STOCKS_VALUE, 5));
+		ProductDetails details = new ProductDetails(waitHelper.getText(currentValueText, 1),
+				waitHelper.getText(min_InvestmentValue, 1), waitHelper.getText(horizon_Value, 1),
+				waitHelper.getText(inceptionDateValue, 1), waitHelper.getText(benchmarkValue, 1),
+				waitHelper.getText(methodologyValue, 1), waitHelper.getText(NO_OF_STOCKS_VALUE, 1));
 
 		// System.out.println("Fetched Product Details: " + details);
 		return details;
@@ -182,7 +173,7 @@ public class ProductPage extends BasePage {
 
 		sa.assertEquals(actual.getCurrentValue(), ConfigReader.get("expected.current.value"));
 		sa.assertEquals(actual.getMinInvestment(), ConfigReader.get("expectedMinInvestment"));
-		sa.assertEquals(actual.getHorizon(), ConfigReader.get("product.horizon"));
+		sa.assertEquals(actual.getHorizon(), ConfigReader.get("expectedHorizon"));
 		sa.assertEquals(actual.getInceptionDate(), ConfigReader.get("product.inceptionDate"));
 		sa.assertEquals(actual.getBenchmark(), ConfigReader.get("product.benchmark"));
 		sa.assertEquals(actual.getMethodology(), ConfigReader.get("product.methodology"));
@@ -192,10 +183,10 @@ public class ProductPage extends BasePage {
 	}
 
 	@FindBy(xpath = "//a[normalize-space()='Invest Lumpsum']")
-	public WebElement InvestLumpsumBtn;
+	private WebElement InvestLumpsumBtn;
 
 	public void clickInvestLumpsum() {
-		(waitHelper.waitForClickableElement(InvestLumpsumBtn, 10)).click();
+		waitHelper.click(InvestLumpsumBtn, 10);
 	}
 
 }

@@ -6,7 +6,7 @@ import com.aventstack.extentreports.*;
 import utils.ExcelLogger;
 import utils.ExecutionSummary;
 import utils.ExtentManager;
-import utils.ScreenshotUtil;
+import utils.UtilsMethod;
 
 public class TestListener implements ITestListener {
 
@@ -28,7 +28,7 @@ public class TestListener implements ITestListener {
 	@Override
 	public void onTestFailure(ITestResult result) {
 
-		String screenshotPath = ScreenshotUtil.captureScreenshot(result.getMethod().getMethodName());
+		String screenshotPath = UtilsMethod.captureScreenshot(result.getMethod().getMethodName());
 
 		testThread.get().fail(result.getThrowable(),
 				MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
@@ -54,9 +54,18 @@ public class TestListener implements ITestListener {
 		ExecutionSummary.endTime = System.currentTimeMillis();
 	}
 
+	/*
+	 * @Override public void onTestSkipped(ITestResult result) {
+	 * testThread.get().skip("Test Skipped: " + result.getThrowable());
+	 * ExecutionSummary.skipped++; }
+	 */
+
 	@Override
 	public void onTestSkipped(ITestResult result) {
-		testThread.get().skip("Test Skipped: " + result.getThrowable());
+		String reason = result.getThrowable() != null ? result.getThrowable().getMessage()
+				: "Skipped due to dependency failure";
+
+		testThread.get().skip(reason);
 		ExecutionSummary.skipped++;
 	}
 

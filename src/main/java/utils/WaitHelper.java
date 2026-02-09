@@ -10,69 +10,58 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class WaitHelper {
-
 	private WebDriver driver;
-	private WebDriverWait wait;
+
+	private WebDriverWait getWait(long timeoutSeconds) {
+		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+	}
 
 	public WaitHelper(WebDriver driver) {
 		this.driver = driver;
-		this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 	}
 	/* ================= VISIBILITY ================= */
 
-	public WebElement waitForVisibility(WebElement element, int timeoutSeconds) {
-		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds))
-				.until(ExpectedConditions.visibilityOf(element));
+	public WebElement waitForVisibility(By locator, long timeoutSeconds) {
+		return getWait(timeoutSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator));
 	}
 
-	public WebElement waitForElementVisible(By locator, long timeoutSeconds) {
-		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds))
-				.until(ExpectedConditions.visibilityOfElementLocated(locator));
+	public WebElement waitForVisibility(WebElement element, long timeoutSeconds) {
+		return getWait(timeoutSeconds).until(ExpectedConditions.visibilityOf(element));
 	}
 
 	/* ================= CLICKABLE ================= */
 
-	public WebElement waitForClickable(By locator, int timeoutSeconds) {
-		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds))
-				.until(ExpectedConditions.elementToBeClickable(locator));
+	public WebElement waitForClickable(By locator, long timeoutSeconds) {
+		return getWait(timeoutSeconds).until(ExpectedConditions.elementToBeClickable(locator));
 	}
 
-	public WebElement waitForClickableElement(WebElement element, int timeout) {
-		return new WebDriverWait(driver, Duration.ofSeconds(timeout))
-				.until(ExpectedConditions.elementToBeClickable(element));
+	public WebElement waitForClickable(WebElement element, long timeoutSeconds) {
+		return getWait(timeoutSeconds).until(ExpectedConditions.elementToBeClickable(element));
 	}
 
-	public void click(By locator) {
-		wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+	public void click(By locator, long timeoutSeconds) {
+		waitForClickable(locator, timeoutSeconds).click();
 	}
 
-	public void click(WebElement element) {
-		wait.until(ExpectedConditions.elementToBeClickable(element)).click();
+	public void click(WebElement element, long timeoutSeconds) {
+		waitForClickable(element, timeoutSeconds).click();
 	}
 
 	/* ================= TEXT ================= */
 
-//	public String getTextByElement(WebElement element) {
-//		wait.until(ExpectedConditions.visibilityOf(element));
-//		return element.getText().trim();
-//	}
-
-	public String getTextByLocatorXpath(By locator) {
-		wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-		return driver.findElement(locator).getText().trim();
+	public String getText(By locator, long timeoutSeconds) {
+		return waitForVisibility(locator, timeoutSeconds).getText().trim();
 	}
 
-	public String getTextByElement(WebElement element, int timeout) {
-		waitForVisibility(element, timeout);
-		return element.getText().trim();
+	public String getText(WebElement element, long timeoutSeconds) {
+		return waitForVisibility(element, timeoutSeconds).getText().trim();
 	}
 
-	public String getTextByLocator(By locator, long timeout) {
-		WebElement element = waitForElementVisible(locator, timeout);
-		return element.getText().trim();
-
+	public String getText(WebElement parent, By childLocator, long timeoutSeconds) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+		WebElement child = wait.until(d -> parent.findElement(childLocator));
+		return child.getText().trim();
 	}
-
 	/* ================= STATIC WAIT (ONLY THIS IS STATIC) ================= */
 
 	public void staticWait(long seconds) {
@@ -83,29 +72,47 @@ public class WaitHelper {
 		}
 	}
 
-	public String waitAndGetTextSafely(By locator, int timeoutSeconds) {
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
-		return wait.until(driver -> {
-			try {
-				WebElement el = driver.findElement(locator);
-				String text = el.getText().trim();
-				return text.isEmpty() ? null : text;
-			} catch (StaleElementReferenceException e) {
-				return null;
-			}
-		});
+	/* ================= Visibility/Element Enabled checks ================= */
+
+	public boolean isElementVisible(By locator, int timeoutSeconds) {
+		try {
+			getWait(timeoutSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator));
+			return true;
+		} catch (TimeoutException e) {
+			return false;
+		}
 	}
 
-	public void waitForTextToBePresent(By locator, String expectedText, int timeoutSeconds) {
-		wait.until(ExpectedConditions.textToBePresentInElementLocated(locator, expectedText));
+	public boolean isElementVisible(WebElement element, int timeoutSeconds) {
+		try {
+			getWait(timeoutSeconds).until(ExpectedConditions.visibilityOf(element));
+			return true;
+		} catch (TimeoutException | StaleElementReferenceException e) {
+			return false;
+		}
 	}
 
-//	public void waitForTextToChange(By locator, String oldText, int timeoutSeconds) {
-//		wait.until(driver -> !driver.findElement(locator).getText().trim().equals(oldText));
-//	}
+	public boolean isElementEnabled(By locator, int timeoutSeconds) {
+		try {
+			getWait(timeoutSeconds).until(ExpectedConditions.elementToBeClickable(locator));
+			return true;
+		} catch (TimeoutException e) {
+			return false;
+		}
+	}
 
+	public boolean isElementEnabled(WebElement element, int timeoutSeconds) {
+		try {
+			getWait(timeoutSeconds).until(ExpectedConditions.elementToBeClickable(element));
+			return true;
+		} catch (TimeoutException | StaleElementReferenceException e) {
+			return false;
+		}
+	}
+
+	/* ================= Custom Methods ================= */
 	public boolean waitForTabAndSwitchByTitle(String expectedTitle, int timeout) {
-		return wait.until(driver -> {
+		return getWait(timeout).until(driver -> {
 			for (String window : driver.getWindowHandles()) {
 				driver.switchTo().window(window);
 				if (driver.getTitle().equalsIgnoreCase(expectedTitle)) {
@@ -116,18 +123,8 @@ public class WaitHelper {
 		});
 	}
 
-	public String getTextIgnoringStale(By locator, int timeoutSeconds) {
-		return wait.until(driver -> {
-			try {
-				return driver.findElement(locator).getText().trim();
-			} catch (StaleElementReferenceException e) {
-				return null;
-			}
-		});
-	}
-
 	public String waitForTextToBe(By locator, String expectedText, int timeoutSeconds) {
-		wait.until(driver -> {
+		getWait(timeoutSeconds).until(driver -> {
 			try {
 				String actual = driver.findElement(locator).getText().trim();
 				return actual.equals(expectedText);
@@ -137,51 +134,6 @@ public class WaitHelper {
 		});
 
 		return driver.findElement(locator).getText().trim();
-	}
-
-	public boolean isElementVisible(By locator, int timeoutSeconds) {
-		try {
-			wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-			return true;
-		} catch (TimeoutException e) {
-			return false;
-		}
-	}
-
-	public boolean isElementVisibleByWebelement(WebElement element, int timeoutSeconds) {
-		try {
-			wait.until(ExpectedConditions.visibilityOf(element));
-			return true;
-		} catch (TimeoutException | StaleElementReferenceException e) {
-			return false;
-		}
-	}
-
-	public boolean isElementEnabled(By locator) {
-		try {
-			return driver.findElement(locator).isEnabled();
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
-	public boolean isElementEnabledbyWebelement(WebElement element, int timeoutSeconds) {
-		try {
-			wait.until(ExpectedConditions.elementToBeClickable(element));
-			return element.isEnabled();
-		} catch (TimeoutException e) {
-			return false;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
-	public WebElement waitForElementToBeClickable(By locator, int timeout) {
-		return wait.until(ExpectedConditions.elementToBeClickable(locator));
-	}
-
-	public WebElement waitForElementToBeClickableByWebelement(WebElement element, int timeout) {
-		return wait.until(ExpectedConditions.elementToBeClickable(element));
 	}
 
 }

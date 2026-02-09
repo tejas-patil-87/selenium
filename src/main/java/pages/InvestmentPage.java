@@ -42,7 +42,7 @@ public class InvestmentPage extends BasePage {
 	public WebElement investmentAmountNextBtn;
 
 	public void proceedFromInvestmentAmountPopup() {
-		waitHelper.waitForClickableElement(investmentAmountNextBtn, 10).click();
+		waitHelper.waitForClickable(investmentAmountNextBtn, 10).click();
 	}
 
 	@FindBy(xpath = "//h4[contains(normalize-space(),'How much you’d like to Invest')]")
@@ -112,59 +112,48 @@ public class InvestmentPage extends BasePage {
 	public WebElement ActivationModelNextButton;
 
 	public void clickActivationModelNextButton() {
-		waitHelper.waitForClickableElement(ActivationModelNextButton, 10).click();
+		waitHelper.waitForClickable(ActivationModelNextButton, 10).click();
+	}
+
+	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//div[contains(@class,'list-icon')]")
+	private List<WebElement> listIcons;
+
+	public boolean areTwoListIconsDisplayed() {
+		try {
+			waitHelper.waitForVisibility(listIcons.get(0), 2); // ensures DOM + visibility
+			return listIcons.size() == 2;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public boolean areTwoListIconsPresent() {
+		return listIcons.size() == 2;
 	}
 
 	public void assertActivationModelUI() {
 
 		SoftAssert sa = new SoftAssert();
-
 		sa.assertTrue(isActivationModelVisible(), "Activation Model is not Visible");
-
-		sa.assertTrue(isListIconDisplayed(), "List icon is NOT displayed");
-
-		sa.assertEquals(getPortfolioDescriptionText(), ConfigReader.get("activation.modle.description"),
+		// sa.assertTrue(isListIconDisplayed(), "List icon is NOT displayed")
+		sa.assertTrue(areTwoListIconsDisplayed(), "Expected 2 list icons, but count was different");
+		sa.assertEquals(waitHelper.getText(portfolioDescription, 2), ConfigReader.get("activation.modle.description"),
 				"Portfolio description text mismatch");
-
-		sa.assertEquals(getStandardBrokerageText(), ConfigReader.get("standard.brokerage"),
+		sa.assertEquals(waitHelper.getText(standardBrokerage, 2), ConfigReader.get("standard.brokerage"),
 				"Standard Brokerage text mismatch");
-
-		sa.assertEquals(getNextButtonText(), ConfigReader.get("cta.next.text"), "CTA button text mismatch");
-
+		sa.assertEquals(waitHelper.getText(nextCtaButton, 2), ConfigReader.get("cta.next.text"),
+				"CTA button text mismatch");
 		sa.assertAll();
-	}
-
-	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//div[contains(@class,'list-icon')]")
-	private WebElement listIcon;
-
-	public boolean isListIconDisplayed() {
-		waitHelper.waitForVisibility(listIcon, 2);
-		return listIcon.isDisplayed();
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//p[@class='f12 white']")
 	private WebElement portfolioDescription;
 
-	public String getPortfolioDescriptionText() {
-		waitHelper.waitForVisibility(portfolioDescription, 2);
-		return portfolioDescription.getText().trim();
-	}
-
-	@FindBy(xpath = "//p[@class='f12 white' and normalize-space()='Standard Brokerage 1 %']")
+	@FindBy(xpath = "//div[contains(@class,'dblock')]//p[contains(text(),'Standard Brokerage')]")
 	private WebElement standardBrokerage;
-
-	public String getStandardBrokerageText() {
-		waitHelper.waitForVisibility(standardBrokerage, 2);
-		return standardBrokerage.getText().trim();
-	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-action-box')]//a[contains(@class,'cta-fixed-bottom')]")
 	private WebElement nextCtaButton;
-
-	public String getNextButtonText() {
-		waitHelper.waitForVisibility(nextCtaButton, 2);
-		return nextCtaButton.getText().trim();
-	}
 
 	private By valueByLabel(String labelText) {
 		return By.xpath("//p[normalize-space()='" + labelText + "']" + "/ancestor::div[contains(@class,'ria-textcal')]"
@@ -172,36 +161,38 @@ public class InvestmentPage extends BasePage {
 	}
 
 	public String getSubscriptionAmount() {
-		return waitHelper.getTextByLocatorXpath(valueByLabel("Subscription amount"));
+		return waitHelper.getText(valueByLabel("Subscription amount"), 5);
 	}
 
 	public String getGstAmount() {
-		return waitHelper.getTextByLocatorXpath(valueByLabel("GST (18%)"));
+		return waitHelper.getText(valueByLabel("GST (18%)"), 5);
 	}
 
 	public String getRequiredMargin() {
-		return waitHelper.getTextByLocatorXpath(valueByLabel("Required Margin"));
+		return waitHelper.getText(valueByLabel("Required Margin"), 5);
 	}
 
 	public String getAvailableAmount() {
-		return waitHelper.getTextByLocatorXpath(valueByLabel("Available"));
+		return waitHelper.getText(valueByLabel("Available"), 5);
 	}
 
-	// INVEST_NOW_BY_TITLE_XPATH
 	private By INVESTMENT_AMOUNT_BY = By.xpath("//p[normalize-space()='Investment amount']"
 			+ "/following-sibling::div//div[contains(@class,'invest-bold')]");
 
 	public String getInvestmentAmount(String expectedAmount) {
-		return waitHelper.waitForTextToBe(INVESTMENT_AMOUNT_BY, expectedAmount, 15);
+		return waitHelper.waitForTextToBe(INVESTMENT_AMOUNT_BY, expectedAmount, 10);
 	}
 
 	public void assertInvestmentSummary(String expectedInvestmentAmount) {
 
-		System.out.println("Investment Amount  : " + getInvestmentAmount(expectedInvestmentAmount));
-		System.out.println("Subscription Amount: " + getSubscriptionAmount());
-		System.out.println("GST Amount         : " + getGstAmount());
-		System.out.println("Required Margin    : " + getRequiredMargin());
-		System.out.println("Available Amount   : " + getAvailableAmount());
+		/*
+		 * System.out.println("Investment Amount  : " +
+		 * getInvestmentAmount(expectedInvestmentAmount));
+		 * System.out.println("Subscription Amount: " + getSubscriptionAmount());
+		 * System.out.println("GST Amount         : " + getGstAmount());
+		 * System.out.println("Required Margin    : " + getRequiredMargin());
+		 * System.out.println("Available Amount   : " + getAvailableAmount());
+		 */
 
 		SoftAssert sa = new SoftAssert();
 		sa.assertEquals(getInvestmentAmount(expectedInvestmentAmount), expectedInvestmentAmount,
@@ -222,8 +213,8 @@ public class InvestmentPage extends BasePage {
 	// click on investment now
 	public void clickConfirInvestmentInvestNow() {
 		try {
-			if (waitHelper.isElementVisibleByWebelement(InvestNow, 5)) {
-				waitHelper.click(InvestNow);
+			if (waitHelper.isElementVisible(InvestNow, 5)) {
+				waitHelper.click(InvestNow, 5);
 			}
 		} catch (Exception e) {
 			System.out.println("Popup not present or already closed");
@@ -234,9 +225,9 @@ public class InvestmentPage extends BasePage {
 	private WebElement verifyOtpBtn;
 
 	public boolean clickVerifyOtpIfReady() {
-		boolean isEnabled = waitHelper.isElementEnabledbyWebelement(verifyOtpBtn, 15);
+		boolean isEnabled = waitHelper.isElementEnabled(verifyOtpBtn, 15);
 		if (isEnabled) {
-			waitHelper.waitForElementToBeClickableByWebelement(verifyOtpBtn, 10);
+			waitHelper.waitForClickable(verifyOtpBtn, 10);
 			return true;
 		}
 		return false;
@@ -247,8 +238,8 @@ public class InvestmentPage extends BasePage {
 
 	public void investmentOTPLogic() {
 		UtilsMethod.fillOTP(otpInputs, "9");
-		waitHelper.isElementVisibleByWebelement(verifyOtpBtn, 5);
-		boolean isReady = waitHelper.isElementEnabledbyWebelement(verifyOtpBtn, 25);
+		waitHelper.isElementVisible(verifyOtpBtn, 5);
+		boolean isReady = waitHelper.isElementEnabled(verifyOtpBtn, 25);
 		if (isReady) {
 			verifyOtpBtn.click();
 			waitHelper.staticWait(2);

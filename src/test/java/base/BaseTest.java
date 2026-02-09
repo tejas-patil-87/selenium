@@ -13,7 +13,7 @@ import utils.DBUtils;
 import utils.EmailUtil;
 import utils.ExcelLogger;
 import utils.FrameworkConstants;
-import utils.ScreenshotUtil;
+import utils.UtilsMethod;
 
 @Listeners(listeners.TestListener.class)
 public class BaseTest {
@@ -21,8 +21,8 @@ public class BaseTest {
 
 	@BeforeSuite(alwaysRun = true)
 	public void cleanOldScreenshots() {
-		ScreenshotUtil.cleanScreenshotDirectory();
-		ScreenshotUtil.deleteAllZipFiles();
+		UtilsMethod.cleanScreenshotDirectory();
+		UtilsMethod.deleteAllZipFiles();
 		ExcelLogger.cleanLogDirectory();
 		ExcelLogger.initializeLogFile();
 		DBUtils.cleanOtpData();
@@ -49,10 +49,10 @@ public class BaseTest {
 
 	@AfterSuite(alwaysRun = true)
 	public void afterSuite() {
-		ScreenshotUtil.zipScreenshots();
+		UtilsMethod.zipScreenshots();
 		// EmailUtil.sendExecutionReportEmail();
 		try {
-			@SuppressWarnings("unused")
+
 			String body = EmailUtil.prepareEmailBody(FrameworkConstants.HTMLBODY);
 			System.out.println(body);
 			// EmailUtil.sendExecutionReportEmail(body);

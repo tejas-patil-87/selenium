@@ -26,7 +26,7 @@ public class LoginPage extends BasePage {
 	public WebElement loginbutton;
 
 	public void clickLoginButton() {
-		waitHelper.waitForClickableElement(loginbutton, 10).click();
+		waitHelper.waitForClickable(loginbutton, 10).click();
 	}
 
 	public void fillOTP(List<WebElement> otpFields, String OTP) {
@@ -41,7 +41,7 @@ public class LoginPage extends BasePage {
 	public WebElement Submit;
 
 	public void clickSubmitButton() {
-		waitHelper.waitForClickableElement(Submit, 10).click();
+		waitHelper.waitForClickable(Submit, 10).click();
 	}
 
 	@FindBy(xpath = "//input[@id='client-code']")
@@ -51,21 +51,21 @@ public class LoginPage extends BasePage {
 	public WebElement logoutAndContinue;
 
 	public void clickLogoutAndContinue() {
-		waitHelper.waitForClickableElement(logoutAndContinue, 10).click();
+		waitHelper.waitForClickable(logoutAndContinue, 10).click();
 	}
 
 	@FindBy(xpath = "//button[contains(@class,'login-btn') and normalize-space()='Get Data']")
 	public WebElement getDataBtn;
 
 	public void clickGetDataButton() {
-		waitHelper.waitForClickableElement(getDataBtn, 10).click();
+		waitHelper.waitForClickable(getDataBtn, 10).click();
 	}
 
 	@FindBy(xpath = "//span[contains(@class,'iap-click-here') and normalize-space()='Go to IMP']")
 	public WebElement goToImp;
 
 	public void clickGoToImp() {
-		waitHelper.waitForClickableElement(goToImp, 10).click();
+		waitHelper.waitForClickable(goToImp, 10).click();
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'advisor-client-otp-wrapper')]")
@@ -78,7 +78,7 @@ public class LoginPage extends BasePage {
 	public WebElement clientOTPSubmit;
 
 	public void submitClientOtp() {
-		waitHelper.waitForClickableElement(clientOTPSubmit, 10).click();
+		waitHelper.waitForClickable(clientOTPSubmit, 10).click();
 	}
 
 	@FindBy(xpath = "//div[@class='fourblock ml15 hide-scrollbar']")
@@ -108,11 +108,11 @@ public class LoginPage extends BasePage {
 
 	public void selectAmount(int index) {
 		By amountBtn = By.xpath("//button[@id='" + index + "']");
-		waitHelper.click(amountBtn);
+		waitHelper.click(amountBtn, 5);
 	}
 
 	public void clickNext() {
-		waitHelper.click(nextBtn);
+		waitHelper.click(nextBtn, 5);
 	}
 
 }
