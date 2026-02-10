@@ -43,7 +43,7 @@ public class DriverFactory {
 		}
 		// getDriver().manage().window().maximize();
 		getDriver().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-		getDriver().get(ConfigReader.get("url"));
+		getDriver().get(ConfigReader.get("app.base.url"));
 	}
 
 	public static WebDriver getDriver() {

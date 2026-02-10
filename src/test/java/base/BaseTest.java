@@ -37,9 +37,9 @@ public class BaseTest {
 
 	@AfterMethod
 	public void captureFailureScreenshot(ITestResult result) {
-//		if (ITestResult.FAILURE == result.getStatus()) {
-//			ScreenshotUtil.captureScreenshot(result.getName());
-//		}
+		if (ITestResult.FAILURE == result.getStatus()) {
+			// UtilsMethod.captureScreenshot(result.getName());
+		}
 	}
 
 	@AfterClass(alwaysRun = true)
@@ -52,9 +52,9 @@ public class BaseTest {
 		UtilsMethod.zipScreenshots();
 		// EmailUtil.sendExecutionReportEmail();
 		try {
-
+			@SuppressWarnings("unused")
 			String body = EmailUtil.prepareEmailBody(FrameworkConstants.HTMLBODY);
-			System.out.println(body);
+			// System.out.println(body);
 			// EmailUtil.sendExecutionReportEmail(body);
 
 		} catch (Exception e) {

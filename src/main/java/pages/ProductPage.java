@@ -171,13 +171,13 @@ public class ProductPage extends BasePage {
 	public void assertProductDetails(ProductDetails actual) {
 		SoftAssert sa = new SoftAssert();
 
-		sa.assertEquals(actual.getCurrentValue(), ConfigReader.get("expected.current.value"));
-		sa.assertEquals(actual.getMinInvestment(), ConfigReader.get("expectedMinInvestment"));
-		sa.assertEquals(actual.getHorizon(), ConfigReader.get("expectedHorizon"));
-		sa.assertEquals(actual.getInceptionDate(), ConfigReader.get("product.inceptionDate"));
+		sa.assertEquals(actual.getCurrentValue(), ConfigReader.get("product.current.value"));
+		sa.assertEquals(actual.getMinInvestment(), ConfigReader.get("product.min.investment"));
+		sa.assertEquals(actual.getHorizon(), ConfigReader.get("product.horizon"));
+		sa.assertEquals(actual.getInceptionDate(), ConfigReader.get("product.inception.date"));
 		sa.assertEquals(actual.getBenchmark(), ConfigReader.get("product.benchmark"));
 		sa.assertEquals(actual.getMethodology(), ConfigReader.get("product.methodology"));
-		sa.assertEquals(actual.getNoOfStocks(), ConfigReader.get("product.noOfStocks"));
+		sa.assertEquals(actual.getNoOfStocks(), ConfigReader.get("product.no.of.stocks"));
 
 		sa.assertAll();
 	}

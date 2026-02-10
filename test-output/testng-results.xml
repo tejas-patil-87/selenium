@@ -2,73 +2,73 @@
 <testng-results ignored="0" total="3" passed="3" failed="0" skipped="0">
   <reporter-output>
   </reporter-output>
-  <suite started-at="2026-02-09T17:10:22 IST" name="Default suite" finished-at="2026-02-09T17:11:44 IST" duration-ms="81926">
+  <suite started-at="2026-02-10T18:09:15 IST" name="Default suite" finished-at="2026-02-10T18:10:22 IST" duration-ms="67753">
     <groups>
     </groups>
-    <test started-at="2026-02-09T17:10:22 IST" name="Default test" finished-at="2026-02-09T17:11:44 IST" duration-ms="81926">
+    <test started-at="2026-02-10T18:09:15 IST" name="Default test" finished-at="2026-02-10T18:10:22 IST" duration-ms="67753">
       <class name="tests.LoginTest">
-        <test-method is-config="true" signature="cleanOldScreenshots()[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:10:17 IST" name="cleanOldScreenshots" finished-at="2026-02-09T17:10:22 IST" duration-ms="5574" status="PASS">
+        <test-method is-config="true" signature="cleanOldScreenshots()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:11 IST" name="cleanOldScreenshots" finished-at="2026-02-10T18:09:15 IST" duration-ms="3839" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- cleanOldScreenshots -->
-        <test-method is-config="true" signature="setUp()[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:10:22 IST" name="setUp" finished-at="2026-02-09T17:10:36 IST" duration-ms="13751" status="PASS">
+        <test-method is-config="true" signature="setUp()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:15 IST" name="setUp" finished-at="2026-02-10T18:09:24 IST" duration-ms="9733" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- setUp -->
-        <test-method is-config="true" signature="initPages()[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:10:36 IST" name="initPages" finished-at="2026-02-09T17:10:36 IST" duration-ms="107" status="PASS">
+        <test-method is-config="true" signature="initPages()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:24 IST" name="initPages" finished-at="2026-02-10T18:09:24 IST" duration-ms="70" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- initPages -->
-        <test-method signature="loginTest()[pri:1, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:10:36 IST" name="loginTest" finished-at="2026-02-09T17:10:45 IST" duration-ms="8696" status="PASS">
+        <test-method signature="loginTest()[pri:1, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:24 IST" name="loginTest" finished-at="2026-02-10T18:09:30 IST" duration-ms="5873" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- loginTest -->
-        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:10:45 IST" name="captureFailureScreenshot" finished-at="2026-02-09T17:10:45 IST" duration-ms="3" status="PASS">
+        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:30 IST" name="captureFailureScreenshot" finished-at="2026-02-10T18:09:30 IST" duration-ms="3" status="PASS">
           <params>
             <param index="0">
               <value>
-                <![CDATA[[TestResult name=loginTest status=SUCCESS method=LoginTest.loginTest()[pri:1, instance:tests.LoginTest@5c90e579] output={null}]]]>
+                <![CDATA[[TestResult name=loginTest status=SUCCESS method=LoginTest.loginTest()[pri:1, instance:tests.LoginTest@1dac5ef] output={null}]]]>
               </value>
             </param>
           </params>
           <reporter-output>
           </reporter-output>
         </test-method> <!-- captureFailureScreenshot -->
-        <test-method signature="ProductFlowTest()[pri:2, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:10:45 IST" name="ProductFlowTest" finished-at="2026-02-09T17:11:12 IST" depends-on-methods="tests.LoginTest.loginTest" duration-ms="26911" status="PASS">
+        <test-method signature="ProductFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:30 IST" name="ProductFlowTest" finished-at="2026-02-10T18:09:54 IST" depends-on-methods="tests.LoginTest.loginTest" duration-ms="24131" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- ProductFlowTest -->
-        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:11:12 IST" name="captureFailureScreenshot" finished-at="2026-02-09T17:11:12 IST" duration-ms="1" status="PASS">
+        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:54 IST" name="captureFailureScreenshot" finished-at="2026-02-10T18:09:54 IST" duration-ms="0" status="PASS">
           <params>
             <param index="0">
               <value>
-                <![CDATA[[TestResult name=ProductFlowTest status=SUCCESS method=LoginTest.ProductFlowTest()[pri:2, instance:tests.LoginTest@5c90e579] output={null}]]]>
+                <![CDATA[[TestResult name=ProductFlowTest status=SUCCESS method=LoginTest.ProductFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef] output={null}]]]>
               </value>
             </param>
           </params>
           <reporter-output>
           </reporter-output>
         </test-method> <!-- captureFailureScreenshot -->
-        <test-method signature="investFlowTest()[pri:2, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:11:12 IST" name="investFlowTest" finished-at="2026-02-09T17:11:43 IST" depends-on-methods="tests.LoginTest.ProductFlowTest" duration-ms="31073" status="PASS">
+        <test-method signature="investFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:54 IST" name="investFlowTest" finished-at="2026-02-10T18:10:22 IST" depends-on-methods="tests.LoginTest.ProductFlowTest" duration-ms="27047" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- investFlowTest -->
-        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:11:43 IST" name="captureFailureScreenshot" finished-at="2026-02-09T17:11:43 IST" duration-ms="1" status="PASS">
+        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:10:22 IST" name="captureFailureScreenshot" finished-at="2026-02-10T18:10:22 IST" duration-ms="2" status="PASS">
           <params>
             <param index="0">
               <value>
-                <![CDATA[[TestResult name=investFlowTest status=SUCCESS method=LoginTest.investFlowTest()[pri:2, instance:tests.LoginTest@5c90e579] output={null}]]]>
+                <![CDATA[[TestResult name=investFlowTest status=SUCCESS method=LoginTest.investFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef] output={null}]]]>
               </value>
             </param>
           </params>
           <reporter-output>
           </reporter-output>
         </test-method> <!-- captureFailureScreenshot -->
-        <test-method is-config="true" signature="tearDown()[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:11:43 IST" name="tearDown" finished-at="2026-02-09T17:11:44 IST" duration-ms="1216" status="PASS">
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:10:22 IST" name="tearDown" finished-at="2026-02-10T18:10:22 IST" duration-ms="792" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- tearDown -->
-        <test-method is-config="true" signature="afterSuite()[pri:0, instance:tests.LoginTest@5c90e579]" started-at="2026-02-09T17:11:45 IST" name="afterSuite" finished-at="2026-02-09T17:11:45 IST" duration-ms="50" status="PASS">
+        <test-method is-config="true" signature="afterSuite()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:10:23 IST" name="afterSuite" finished-at="2026-02-10T18:10:23 IST" duration-ms="39" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- afterSuite -->

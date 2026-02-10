@@ -53,6 +53,7 @@ public class InvestmentPage extends BasePage {
 			waitHelper.waitForVisibility(investLumpsumPopup, 20);
 			return investLumpsumPopup.isDisplayed();
 		} catch (Exception e) {
+			Assert.fail("Verify Invest Lumpsum Popup Is Not Visible within timeout");
 			return false;
 		}
 	}
@@ -62,6 +63,7 @@ public class InvestmentPage extends BasePage {
 			waitHelper.waitForVisibility(investLumpsumPopupTitle, 20);
 			return investLumpsumPopupTitle.isDisplayed();
 		} catch (TimeoutException e) {
+			Assert.fail("Verify Invest Lumpsum Popup Title Is Not Visible within timeout");
 			return false;
 		}
 	}
@@ -100,19 +102,14 @@ public class InvestmentPage extends BasePage {
 	public WebElement activationModel;
 
 	public boolean isActivationModelVisible() {
-		try {
-			waitHelper.waitForVisibility(activationModel, 10);
-			return activationModel.isDisplayed();
-		} catch (TimeoutException e) {
-			return false;
-		}
+		return waitHelper.isElementVisible(activationModel, 10);
 	}
 
 	@FindBy(xpath = "//a[contains(@class,'cta-fixed-bottom') and normalize-space()='Next']")
 	public WebElement ActivationModelNextButton;
 
 	public void clickActivationModelNextButton() {
-		waitHelper.waitForClickable(ActivationModelNextButton, 10).click();
+		waitHelper.click(ActivationModelNextButton, 10);
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//div[contains(@class,'list-icon')]")
@@ -120,9 +117,10 @@ public class InvestmentPage extends BasePage {
 
 	public boolean areTwoListIconsDisplayed() {
 		try {
-			waitHelper.waitForVisibility(listIcons.get(0), 2); // ensures DOM + visibility
+			waitHelper.waitForVisibility(listIcons.get(0), 2);
 			return listIcons.size() == 2;
 		} catch (Exception e) {
+			Assert.fail("Expected exactly 2 list icons to be displayed, but found " + listIcons.size());
 			return false;
 		}
 	}
@@ -137,11 +135,11 @@ public class InvestmentPage extends BasePage {
 		sa.assertTrue(isActivationModelVisible(), "Activation Model is not Visible");
 		// sa.assertTrue(isListIconDisplayed(), "List icon is NOT displayed")
 		sa.assertTrue(areTwoListIconsDisplayed(), "Expected 2 list icons, but count was different");
-		sa.assertEquals(waitHelper.getText(portfolioDescription, 2), ConfigReader.get("activation.modle.description"),
+		sa.assertEquals(waitHelper.getText(portfolioDescription, 2), ConfigReader.get("activation.model.description"),
 				"Portfolio description text mismatch");
-		sa.assertEquals(waitHelper.getText(standardBrokerage, 2), ConfigReader.get("standard.brokerage"),
+		sa.assertEquals(waitHelper.getText(standardBrokerage, 2), ConfigReader.get("activation.model.brokerage.standard"),
 				"Standard Brokerage text mismatch");
-		sa.assertEquals(waitHelper.getText(nextCtaButton, 2), ConfigReader.get("cta.next.text"),
+		sa.assertEquals(waitHelper.getText(nextCtaButton, 2), ConfigReader.get("activation.model.next.cta.text"),
 				"CTA button text mismatch");
 		sa.assertAll();
 	}
@@ -197,12 +195,12 @@ public class InvestmentPage extends BasePage {
 		SoftAssert sa = new SoftAssert();
 		sa.assertEquals(getInvestmentAmount(expectedInvestmentAmount), expectedInvestmentAmount,
 				"Mismatch in Investment Amount displayed");
-		sa.assertEquals(getSubscriptionAmount(), ConfigReader.get("expected.subscription.amount"),
+		sa.assertEquals(getSubscriptionAmount(), ConfigReader.get("subscription.amount.expected"),
 				"Mismatch in Subscription Amount displayed");
-		sa.assertEquals(getGstAmount(), ConfigReader.get("expected.gst.amount"), "Mismatch in GST Amount displayed");
-		sa.assertEquals(getRequiredMargin(), ConfigReader.get("expected.required.margin"),
+		sa.assertEquals(getGstAmount(), ConfigReader.get("gst.amount.expected"), "Mismatch in GST Amount displayed");
+		sa.assertEquals(getRequiredMargin(), ConfigReader.get("required.margin.expected"),
 				"Mismatch in Required Margin displayed");
-		sa.assertEquals(getAvailableAmount(), ConfigReader.get("expected.available.amount"),
+		sa.assertEquals(getAvailableAmount(), ConfigReader.get("available.amount.expected"),
 				"Mismatch in Available Margin Amount displayed");
 		sa.assertAll();
 	}
@@ -211,13 +209,11 @@ public class InvestmentPage extends BasePage {
 	private WebElement InvestNow;
 
 	// click on investment now
-	public void clickConfirInvestmentInvestNow() {
-		try {
-			if (waitHelper.isElementVisible(InvestNow, 5)) {
-				waitHelper.click(InvestNow, 5);
-			}
-		} catch (Exception e) {
-			System.out.println("Popup not present or already closed");
+	public void clickConfirmInvestmentInvestNow() {
+		if (waitHelper.isElementVisible(InvestNow, 5)) {
+			waitHelper.click(InvestNow, 5);
+		} else {
+			Assert.fail("'Invest Now' button is not visible on Confirm Investment screen");
 		}
 	}
 
@@ -225,11 +221,11 @@ public class InvestmentPage extends BasePage {
 	private WebElement verifyOtpBtn;
 
 	public boolean clickVerifyOtpIfReady() {
-		boolean isEnabled = waitHelper.isElementEnabled(verifyOtpBtn, 15);
-		if (isEnabled) {
-			waitHelper.waitForClickable(verifyOtpBtn, 10);
+		if (waitHelper.isElementEnabled(verifyOtpBtn, 10)) {
+			verifyOtpBtn.click();
 			return true;
 		}
+		Assert.fail(" Verify OTP button was not enabled within timeout");
 		return false;
 	}
 
@@ -238,13 +234,11 @@ public class InvestmentPage extends BasePage {
 
 	public void investmentOTPLogic() {
 		UtilsMethod.fillOTP(otpInputs, "9");
-		waitHelper.isElementVisible(verifyOtpBtn, 5);
-		boolean isReady = waitHelper.isElementEnabled(verifyOtpBtn, 25);
-		if (isReady) {
-			verifyOtpBtn.click();
+		try {
+			waitHelper.waitForClickable(verifyOtpBtn, 25).click();
 			waitHelper.staticWait(2);
-		} else {
-			Assert.fail("Verify OTP button was not ready");
+		} catch (TimeoutException e) {
+			Assert.fail("Verify OTP button was not clickable within timeout");
 		}
 	}
 
@@ -263,9 +257,9 @@ public class InvestmentPage extends BasePage {
 
 	public boolean waitForInvestmentSuccessPopup(int timeoutSeconds) {
 		try {
-			waitHelper.waitForVisibility(investmentSuccessPopup, timeoutSeconds);
-			return investmentSuccessPopup.isDisplayed();
+			return waitHelper.isElementVisible(investmentSuccessPopup, timeoutSeconds);
 		} catch (Exception e) {
+			Assert.fail("Investment Success popup did not appear within " + timeoutSeconds + " seconds");
 			return false;
 		}
 	}

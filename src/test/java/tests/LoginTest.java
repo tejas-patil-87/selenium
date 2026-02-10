@@ -23,13 +23,13 @@ public class LoginTest extends BaseTest {
 
 	@Test(priority = 1)
 	public void loginTest() throws InterruptedException {
-		loginPage.userID.sendKeys(ConfigReader.get("userid"));
-		loginPage.password.sendKeys(ConfigReader.get("password"));
+		loginPage.userID.sendKeys(ConfigReader.get("auth.user.id"));
+		loginPage.password.sendKeys(ConfigReader.get("auth.user.password"));
 		loginPage.clickLoginButton();
 		loginPage.fillOTP(loginPage.OTP, "9");
 		loginPage.clickSubmitButton();
 		loginPage.clickLogoutAndContinue();
-		loginPage.clientCode.sendKeys(ConfigReader.get("clientCode"));
+		loginPage.clientCode.sendKeys(ConfigReader.get("auth.client.code"));
 		loginPage.clickGetDataButton();
 		loginPage.clickGoToImp();
 		loginPage.fillOTP(loginPage.clientOTP, "9");
@@ -38,28 +38,27 @@ public class LoginTest extends BaseTest {
 
 	@Test(priority = 2, dependsOnMethods = "loginTest")
 	public void ProductFlowTest() throws Throwable {
-		productPage.handlePopupIfPresent(ConfigReader.get("pageTitle"));
-		productPage.changeTabAndVerifyProduct(ConfigReader.get("newPorduct"));
-		productPage.verifyProductCardDetails(ConfigReader.get("newPorduct"), ConfigReader.get("expectedMinInvestment"),
-				ConfigReader.get("expectedHorizon"));
-		productPage.clickInvestNowByProductTitle(ConfigReader.get("newPorduct"));
+		productPage.handlePopupIfPresent(ConfigReader.get("app.page.title"));
+		productPage.changeTabAndVerifyProduct(ConfigReader.get("product.new"));
+		productPage.verifyProductCardDetails(ConfigReader.get("product.new"),
+				ConfigReader.get("product.min.investment"), ConfigReader.get("product.horizon"));
+		productPage.clickInvestNowByProductTitle(ConfigReader.get("product.new"));
 		productPage.assertProductDetails(productPage.fetchProductDetails());
 		productPage.clickInvestLumpsum();
 	}
 
 	@Test(priority = 2, dependsOnMethods = "ProductFlowTest")
 	public void investFlowTest() throws Throwable {
-		investmentPage.assertInvestmentAmountButtons(ConfigReader.get("expectedMinInvestment"));
+		investmentPage.assertInvestmentAmountButtons(ConfigReader.get("product.min.investment"));
 		String expectedInvestmentAmount = investmentPage.selectAmountAndGetExpectedAmount(2,
-				ConfigReader.get("expectedMinInvestment"));
+				ConfigReader.get("product.min.investment"));
 		investmentPage.proceedFromInvestmentAmountPopup();
 		investmentPage.assertActivationModelUI();
 		investmentPage.clickActivationModelNextButton();
 		investmentPage.assertInvestmentSummary(expectedInvestmentAmount);
-		investmentPage.clickConfirInvestmentInvestNow();
+		investmentPage.clickConfirmInvestmentInvestNow();
 		investmentPage.investmentOTPLogic();
 		investmentPage.assertInvestmentSuccess(expectedInvestmentAmount, 30);
-
 		System.out.println("---------------New Investment Completed---------------");
 
 	}

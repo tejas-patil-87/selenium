@@ -64,9 +64,9 @@ public class WaitHelper {
 	}
 	/* ================= STATIC WAIT (ONLY THIS IS STATIC) ================= */
 
-	public void staticWait(long seconds) {
+	public void staticWait(long timeoutSeconds) {
 		try {
-			Thread.sleep(seconds * 1000);
+			Thread.sleep(timeoutSeconds * 1000);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
@@ -111,8 +111,8 @@ public class WaitHelper {
 	}
 
 	/* ================= Custom Methods ================= */
-	public boolean waitForTabAndSwitchByTitle(String expectedTitle, int timeout) {
-		return getWait(timeout).until(driver -> {
+	public boolean waitForTabAndSwitchByTitle(String expectedTitle, int timeoutSeconds) {
+		return getWait(timeoutSeconds).until(driver -> {
 			for (String window : driver.getWindowHandles()) {
 				driver.switchTo().window(window);
 				if (driver.getTitle().equalsIgnoreCase(expectedTitle)) {

@@ -79,8 +79,8 @@ public final class EmailUtil {
 
 		String html = new String(Files.readAllBytes(Paths.get(templatePath)));
 
-		html = html.replace("{{PROJECT_NAME}}", ConfigReader.get("PROJECT_NAME"));
-		html = html.replace("{{ENV}}", ConfigReader.get("ENV"));
+		html = html.replace("{{PROJECT_NAME}}", ConfigReader.get("project.name"));
+		html = html.replace("{{ENV}}", ConfigReader.get("env"));
 		html = html.replace("{{EXECUTION_DATE}}", new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date()));
 		html = html.replace("{{TOTAL_TESTS}}", String.valueOf(ExecutionSummary.totalTests));
 		html = html.replace("{{PASSED}}", String.valueOf(ExecutionSummary.passed));
