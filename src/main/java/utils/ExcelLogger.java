@@ -75,4 +75,16 @@ public class ExcelLogger {
 		}
 		System.out.println("Log directory cleaned successfully.");
 	}
+
+	public static String extractSoftAssertFailures(Throwable throwable) {
+		if (throwable == null || throwable.getMessage() == null) {
+			return "Test failed due to unknown error";
+		}
+		String message = throwable.getMessage();
+		message = message.replace("The following asserts failed:", "").trim();
+		message = message.replaceAll("expected \\[.*?\\] but found \\[.*?\\]", "").trim();
+		message = message.replaceAll("\\s+(?=[^\\n]+\\| Expected:)", "\n");
+		return message.trim().replaceAll("\\n+", "\n");
+	}
+
 }

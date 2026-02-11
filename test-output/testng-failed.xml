@@ -11,8 +11,8 @@
           <include name="ProductFlowTest"/>
           <include name="investFlowTest"/>
           <include name="captureFailureScreenshot"/>
-          <include name="cleanOldScreenshots"/>
           <include name="initPages"/>
+          <include name="cleanOldScreenshots"/>
           <include name="loginTest"/>
         </methods>
       </class> <!-- tests.LoginTest -->

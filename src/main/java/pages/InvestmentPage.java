@@ -53,7 +53,9 @@ public class InvestmentPage extends BasePage {
 			waitHelper.waitForVisibility(investLumpsumPopup, 20);
 			return investLumpsumPopup.isDisplayed();
 		} catch (Exception e) {
-			Assert.fail("Verify Invest Lumpsum Popup Is Not Visible within timeout");
+			Assert.fail("Invest Lumpsum popup verification failed | "
+					+ "Expected: Invest Lumpsum popup should be visible within 20 seconds | "
+					+ "Actual: Popup was not displayed");
 			return false;
 		}
 	}
@@ -63,7 +65,9 @@ public class InvestmentPage extends BasePage {
 			waitHelper.waitForVisibility(investLumpsumPopupTitle, 20);
 			return investLumpsumPopupTitle.isDisplayed();
 		} catch (TimeoutException e) {
-			Assert.fail("Verify Invest Lumpsum Popup Title Is Not Visible within timeout");
+			Assert.fail("Invest Lumpsum popup title verification failed | "
+					+ "Expected: 'Invest Lumpsum' popup title should be visible within 20 seconds | "
+					+ "Actual: Popup title was not displayed");
 			return false;
 		}
 	}
@@ -83,7 +87,8 @@ public class InvestmentPage extends BasePage {
 			WebElement button = getAmountButton(multiplier);
 			int actualAmount = UtilsMethod.parseAmount(button.getText());
 			Assert.assertEquals(actualAmount, expectedAmount,
-					"Mismatch for investment amount button with multiplier: " + multiplier);
+					"Investment amount button verification failed | " + "Button multiplier: " + multiplier + "x | "
+							+ "Expected amount: ₹" + expectedAmount + " | " + "Actual amount: ₹" + actualAmount);
 		}
 	}
 
@@ -118,9 +123,13 @@ public class InvestmentPage extends BasePage {
 	public boolean areTwoListIconsDisplayed() {
 		try {
 			waitHelper.waitForVisibility(listIcons.get(0), 2);
-			return listIcons.size() == 2;
+			boolean result = listIcons.size() == 2;
+			Assert.assertTrue(result,
+					"List icon verification failed | Expected: 2 list icons | Actual: " + listIcons.size());
+			return result;
 		} catch (Exception e) {
-			Assert.fail("Expected exactly 2 list icons to be displayed, but found " + listIcons.size());
+			Assert.fail("List icon verification failed | Expected: 2 list icons | Actual: "
+					+ (listIcons == null ? 0 : listIcons.size()));
 			return false;
 		}
 	}
@@ -130,17 +139,23 @@ public class InvestmentPage extends BasePage {
 	}
 
 	public void assertActivationModelUI() {
-
 		SoftAssert sa = new SoftAssert();
-		sa.assertTrue(isActivationModelVisible(), "Activation Model is not Visible");
-		// sa.assertTrue(isListIconDisplayed(), "List icon is NOT displayed")
-		sa.assertTrue(areTwoListIconsDisplayed(), "Expected 2 list icons, but count was different");
-		sa.assertEquals(waitHelper.getText(portfolioDescription, 2), ConfigReader.get("activation.model.description"),
-				"Portfolio description text mismatch");
-		sa.assertEquals(waitHelper.getText(standardBrokerage, 2), ConfigReader.get("activation.model.brokerage.standard"),
-				"Standard Brokerage text mismatch");
-		sa.assertEquals(waitHelper.getText(nextCtaButton, 2), ConfigReader.get("activation.model.next.cta.text"),
-				"CTA button text mismatch");
+		sa.assertTrue(isActivationModelVisible(),
+				"Activation Model visibility check failed | Expected: Activation Model should be visible | Actual: Not visible");
+		sa.assertTrue(areTwoListIconsDisplayed(),
+				"List icon verification failed | Expected: 2 list icons | Actual: Count was different");
+		String actualDescription = waitHelper.getText(portfolioDescription, 2);
+		String expectedDescription = ConfigReader.get("activation.model.description");
+		sa.assertEquals(actualDescription, expectedDescription, "Portfolio description mismatch | Expected: '"
+				+ expectedDescription + "' | Actual: '" + actualDescription + "'");
+		String actualBrokerage = waitHelper.getText(standardBrokerage, 2);
+		String expectedBrokerage = ConfigReader.get("activation.model.brokerage.standard");
+		sa.assertEquals(actualBrokerage, expectedBrokerage, "Standard brokerage mismatch | Expected: '"
+				+ expectedBrokerage + "' | Actual: '" + actualBrokerage + "'");
+		String actualCta = waitHelper.getText(nextCtaButton, 2);
+		String expectedCta = ConfigReader.get("activation.model.next.cta.text");
+		sa.assertEquals(actualCta, expectedCta,
+				"CTA button text mismatch | Expected: '" + expectedCta + "' | Actual: '" + actualCta + "'");
 		sa.assertAll();
 	}
 
@@ -183,25 +198,26 @@ public class InvestmentPage extends BasePage {
 
 	public void assertInvestmentSummary(String expectedInvestmentAmount) {
 
-		/*
-		 * System.out.println("Investment Amount  : " +
-		 * getInvestmentAmount(expectedInvestmentAmount));
-		 * System.out.println("Subscription Amount: " + getSubscriptionAmount());
-		 * System.out.println("GST Amount         : " + getGstAmount());
-		 * System.out.println("Required Margin    : " + getRequiredMargin());
-		 * System.out.println("Available Amount   : " + getAvailableAmount());
-		 */
-
 		SoftAssert sa = new SoftAssert();
-		sa.assertEquals(getInvestmentAmount(expectedInvestmentAmount), expectedInvestmentAmount,
-				"Mismatch in Investment Amount displayed");
-		sa.assertEquals(getSubscriptionAmount(), ConfigReader.get("subscription.amount.expected"),
-				"Mismatch in Subscription Amount displayed");
-		sa.assertEquals(getGstAmount(), ConfigReader.get("gst.amount.expected"), "Mismatch in GST Amount displayed");
-		sa.assertEquals(getRequiredMargin(), ConfigReader.get("required.margin.expected"),
-				"Mismatch in Required Margin displayed");
-		sa.assertEquals(getAvailableAmount(), ConfigReader.get("available.amount.expected"),
-				"Mismatch in Available Margin Amount displayed");
+		String actualInvestment = getInvestmentAmount(expectedInvestmentAmount);
+		sa.assertEquals(actualInvestment, expectedInvestmentAmount, "Investment Amount mismatch | Expected: '"
+				+ expectedInvestmentAmount + "' | Actual: '" + actualInvestment + "'");
+		String expectedSubscription = ConfigReader.get("subscription.amount.expected");
+		String actualSubscription = getSubscriptionAmount();
+		sa.assertEquals(actualSubscription, expectedSubscription, "Subscription Amount mismatch | Expected: '"
+				+ expectedSubscription + "' | Actual: '" + actualSubscription + "'");
+		String expectedGst = ConfigReader.get("gst.amount.expected");
+		String actualGst = getGstAmount();
+		sa.assertEquals(actualGst, expectedGst,
+				"GST Amount mismatch | Expected: '" + expectedGst + "' | Actual: '" + actualGst + "'");
+		String expectedRequiredMargin = ConfigReader.get("required.margin.expected");
+		String actualRequiredMargin = getRequiredMargin();
+		sa.assertEquals(actualRequiredMargin, expectedRequiredMargin, "Required Margin mismatch | Expected: '"
+				+ expectedRequiredMargin + "' | Actual: '" + actualRequiredMargin + "'");
+		String expectedAvailable = ConfigReader.get("available.amount.expected");
+		String actualAvailable = getAvailableAmount();
+		sa.assertEquals(actualAvailable, expectedAvailable, "Available Amount mismatch | Expected: '"
+				+ expectedAvailable + "' | Actual: '" + actualAvailable + "'");
 		sa.assertAll();
 	}
 
@@ -213,7 +229,8 @@ public class InvestmentPage extends BasePage {
 		if (waitHelper.isElementVisible(InvestNow, 5)) {
 			waitHelper.click(InvestNow, 5);
 		} else {
-			Assert.fail("'Invest Now' button is not visible on Confirm Investment screen");
+			Assert.fail("Confirm Investment action failed | Expected: 'Invest Now' button should be visible | "
+					+ "Actual: Button not visible on Confirm Investment screen");
 		}
 	}
 
@@ -225,7 +242,8 @@ public class InvestmentPage extends BasePage {
 			verifyOtpBtn.click();
 			return true;
 		}
-		Assert.fail(" Verify OTP button was not enabled within timeout");
+		Assert.fail("OTP verification failed | Expected: 'Verify OTP' button should be enabled within 10 seconds | "
+				+ "Actual: Button remained disabled");
 		return false;
 	}
 
@@ -238,17 +256,22 @@ public class InvestmentPage extends BasePage {
 			waitHelper.waitForClickable(verifyOtpBtn, 25).click();
 			waitHelper.staticWait(2);
 		} catch (TimeoutException e) {
-			Assert.fail("Verify OTP button was not clickable within timeout");
+			Assert.fail(
+					"OTP verification failed | Expected: 'Verify OTP' button should become clickable within 25 seconds | "
+							+ "Actual: Button did not become clickable");
 		}
 	}
 
 	// remove form pom
 	public void assertInvestmentSuccess(String expectedInvestmentAmount, int popupWaitTimeInSec) {
 		SoftAssert sa = new SoftAssert();
-		sa.assertTrue(waitForInvestmentSuccessPopup(popupWaitTimeInSec), "Investment Success popup did NOT appear");
+		boolean isSuccessPopupVisible = waitForInvestmentSuccessPopup(popupWaitTimeInSec);
+		sa.assertTrue(isSuccessPopupVisible, "Investment failed | Expected: Success popup should appear within "
+				+ popupWaitTimeInSec + " seconds | Actual: Popup did not appear");
 		int investmentAmount = UtilsMethod.parseAmount(expectedInvestmentAmount);
-		sa.assertTrue(DBUtils.isSubscriptionDataPresent(investmentAmount),
-				"Subscription data NOT found in tbl_Subscription for given ClientCode and Product");
+		boolean isSubscriptionPresent = DBUtils.isSubscriptionDataPresent(investmentAmount);
+		sa.assertTrue(isSubscriptionPresent, "Investment failed | Expected: Subscription entry in database for amount ₹"
+				+ expectedInvestmentAmount + " | Actual: No matching record found in tbl_Subscription");
 		sa.assertAll();
 	}
 
@@ -259,7 +282,8 @@ public class InvestmentPage extends BasePage {
 		try {
 			return waitHelper.isElementVisible(investmentSuccessPopup, timeoutSeconds);
 		} catch (Exception e) {
-			Assert.fail("Investment Success popup did not appear within " + timeoutSeconds + " seconds");
+			Assert.fail("Investment failed | Expected: Success confirmation popup to appear within " + timeoutSeconds
+					+ " seconds | Actual: Popup was not displayed");
 			return false;
 		}
 	}

@@ -30,8 +30,9 @@ public class ProductPage extends BasePage {
 	private List<WebElement> titleElements;
 
 	public void handlePopupIfPresent(String expectedTitle) {
-		Assert.assertTrue(waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5),
-				"Expected tab not found: " + expectedTitle);
+		boolean tabOpened = waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
+		Assert.assertTrue(tabOpened, "Navigation failed | Expected: Page title = '" + expectedTitle
+				+ "' | Actual: User stayed on previous page");
 		if (waitHelper.isElementVisible(popUp, 5)) {
 			waitHelper.click(closeButton, 5);
 		}
@@ -39,8 +40,10 @@ public class ProductPage extends BasePage {
 
 	public void changeTabAndVerifyProduct(String expectedProduct) {
 		List<String> titles = InvestmentPage.getProductTitles(titleElements);
-		Assert.assertFalse(titles.isEmpty(), "No titles were extracted");
-		Assert.assertTrue(titles.contains(expectedProduct), "Expected title '" + expectedProduct + "' not found");
+		Assert.assertFalse(titles.isEmpty(),
+				"Product verification failed | Expected: Product list should be displayed | Actual: No products were found");
+		Assert.assertTrue(titles.contains(expectedProduct), "Product verification failed | Expected product: '"
+				+ expectedProduct + "' | Actual products shown: " + titles);
 	}
 
 	private static final String PRODUCT_CARD_BY_TITLE = "//div[contains(@class,'product-card')][.//div[contains(@class,'card_tooltip') and @title='%s']]";
@@ -51,14 +54,17 @@ public class ProductPage extends BasePage {
 	private static final By HORIZON_REL = By.xpath(".//div[normalize-space()='Horizon']/preceding-sibling::div[1]");
 
 	public void verifyProductCardDetails(String productTitle, String expectedMinInvestment, String expectedHorizon) {
-		String cardXpath = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
-		By productCardBy = By.xpath(cardXpath);
-		WebElement productCard = waitHelper.waitForVisibility(productCardBy, 10);
-		String actualMinInvestment = waitHelper.getText(productCard, MIN_INVESTMENT_REL, 2);
-		String actualHorizon = waitHelper.getText(productCard, HORIZON_REL, 2);
-		Assert.assertEquals(actualMinInvestment, expectedMinInvestment,
-				"Min Investment mismatch for product: " + productTitle);
-		Assert.assertEquals(actualHorizon, expectedHorizon, "Horizon mismatch for product: " + productTitle);
+		String CARDXPATH = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
+		By PRODUCTCARDBY = By.xpath(CARDXPATH);
+		WebElement PRODUCTCARD = waitHelper.waitForVisibility(PRODUCTCARDBY, 10);
+		String ACTUALMININVESTMENT = waitHelper.getText(PRODUCTCARD, MIN_INVESTMENT_REL, 2);
+		String ACTUALHORIZON = waitHelper.getText(PRODUCTCARD, HORIZON_REL, 2);
+		Assert.assertEquals(ACTUALMININVESTMENT, expectedMinInvestment,
+				"Product card validation failed | Field: Min Investment | Product: '" + productTitle + "' | Expected: '"
+						+ expectedMinInvestment + "' | Actual: '" + ACTUALMININVESTMENT + "'");
+		Assert.assertEquals(ACTUALHORIZON, expectedHorizon,
+				"Product card validation failed | Field: Horizon | Product: '" + productTitle + "' | Expected: '"
+						+ expectedHorizon + "' | Actual: '" + ACTUALHORIZON + "'");
 	}
 
 	public static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
@@ -171,13 +177,29 @@ public class ProductPage extends BasePage {
 	public void assertProductDetails(ProductDetails actual) {
 		SoftAssert sa = new SoftAssert();
 
-		sa.assertEquals(actual.getCurrentValue(), ConfigReader.get("product.current.value"));
-		sa.assertEquals(actual.getMinInvestment(), ConfigReader.get("product.min.investment"));
-		sa.assertEquals(actual.getHorizon(), ConfigReader.get("product.horizon"));
-		sa.assertEquals(actual.getInceptionDate(), ConfigReader.get("product.inception.date"));
-		sa.assertEquals(actual.getBenchmark(), ConfigReader.get("product.benchmark"));
-		sa.assertEquals(actual.getMethodology(), ConfigReader.get("product.methodology"));
-		sa.assertEquals(actual.getNoOfStocks(), ConfigReader.get("product.no.of.stocks"));
+		sa.assertEquals(actual.getCurrentValue(), ConfigReader.get("product.current.value"),
+				"Product details mismatch | Field: Current Value | Expected: '"
+						+ ConfigReader.get("product.current.value") + "' | Actual: '" + actual.getCurrentValue() + "'");
+		sa.assertEquals(actual.getMinInvestment(), ConfigReader.get("product.min.investment"),
+				"Product details mismatch | Field: Min Investment | Expected: '"
+						+ ConfigReader.get("product.min.investment") + "' | Actual: '" + actual.getMinInvestment()
+						+ "'");
+		sa.assertEquals(actual.getHorizon(), ConfigReader.get("product.horizon"),
+				"Product details mismatch | Field: Horizon | Expected: '" + ConfigReader.get("product.horizon")
+						+ "' | Actual: '" + actual.getHorizon() + "'");
+		sa.assertEquals(actual.getInceptionDate(), ConfigReader.get("product.inception.date"),
+				"Product details mismatch | Field: Inception Date | Expected: '"
+						+ ConfigReader.get("product.inception.date") + "' | Actual: '" + actual.getInceptionDate()
+						+ "'");
+		sa.assertEquals(actual.getBenchmark(), ConfigReader.get("product.benchmark"),
+				"Product details mismatch | Field: Benchmark | Expected: '" + ConfigReader.get("product.benchmark")
+						+ "' | Actual: '" + actual.getBenchmark() + "'");
+		sa.assertEquals(actual.getMethodology(), ConfigReader.get("product.methodology"),
+				"Product details mismatch | Field: Methodology | Expected: '" + ConfigReader.get("product.methodology")
+						+ "' | Actual: '" + actual.getMethodology() + "'");
+		sa.assertEquals(actual.getNoOfStocks(), ConfigReader.get("product.no.of.stocks"),
+				"Product details mismatch | Field: No. of Stocks | Expected: '"
+						+ ConfigReader.get("product.no.of.stocks") + "' | Actual: '" + actual.getNoOfStocks() + "'");
 
 		sa.assertAll();
 	}

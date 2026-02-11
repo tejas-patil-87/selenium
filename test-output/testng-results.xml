@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testng-results ignored="0" total="3" passed="3" failed="0" skipped="0">
+<testng-results ignored="0" total="3" passed="1" failed="1" skipped="1">
   <reporter-output>
   </reporter-output>
-  <suite started-at="2026-02-10T18:09:15 IST" name="Default suite" finished-at="2026-02-10T18:10:22 IST" duration-ms="67753">
+  <suite started-at="2026-02-11T14:43:53 IST" name="Default suite" finished-at="2026-02-11T14:44:34 IST" duration-ms="41384">
     <groups>
     </groups>
-    <test started-at="2026-02-10T18:09:15 IST" name="Default test" finished-at="2026-02-10T18:10:22 IST" duration-ms="67753">
+    <test started-at="2026-02-11T14:43:53 IST" name="Default test" finished-at="2026-02-11T14:44:34 IST" duration-ms="41384">
       <class name="tests.LoginTest">
-        <test-method is-config="true" signature="cleanOldScreenshots()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:11 IST" name="cleanOldScreenshots" finished-at="2026-02-10T18:09:15 IST" duration-ms="3839" status="PASS">
+        <test-method is-config="true" signature="cleanOldScreenshots()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:43:49 IST" name="cleanOldScreenshots" finished-at="2026-02-11T14:43:53 IST" duration-ms="3749" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- cleanOldScreenshots -->
-        <test-method is-config="true" signature="setUp()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:15 IST" name="setUp" finished-at="2026-02-10T18:09:24 IST" duration-ms="9733" status="PASS">
+        <test-method is-config="true" signature="setUp()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:43:53 IST" name="setUp" finished-at="2026-02-11T14:44:01 IST" duration-ms="8052" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- setUp -->
-        <test-method is-config="true" signature="initPages()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:24 IST" name="initPages" finished-at="2026-02-10T18:09:24 IST" duration-ms="70" status="PASS">
+        <test-method is-config="true" signature="initPages()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:01 IST" name="initPages" finished-at="2026-02-11T14:44:01 IST" duration-ms="74" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- initPages -->
-        <test-method signature="loginTest()[pri:1, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:24 IST" name="loginTest" finished-at="2026-02-10T18:09:30 IST" duration-ms="5873" status="PASS">
+        <test-method signature="loginTest()[pri:1, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:01 IST" name="loginTest" finished-at="2026-02-11T14:44:07 IST" duration-ms="6198" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- loginTest -->
-        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:30 IST" name="captureFailureScreenshot" finished-at="2026-02-10T18:09:30 IST" duration-ms="3" status="PASS">
+        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:07 IST" name="captureFailureScreenshot" finished-at="2026-02-11T14:44:07 IST" duration-ms="5" status="PASS">
           <params>
             <param index="0">
               <value>
@@ -34,41 +34,109 @@
           <reporter-output>
           </reporter-output>
         </test-method> <!-- captureFailureScreenshot -->
-        <test-method signature="ProductFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:30 IST" name="ProductFlowTest" finished-at="2026-02-10T18:09:54 IST" depends-on-methods="tests.LoginTest.loginTest" duration-ms="24131" status="PASS">
+        <test-method signature="ProductFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:07 IST" name="ProductFlowTest" finished-at="2026-02-11T14:44:33 IST" depends-on-methods="tests.LoginTest.loginTest" duration-ms="25357" status="FAIL">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[The following asserts failed:
+Product details mismatch | Field: Inception Date | Expected: '01 Feb 2' | Actual: '01 Feb 21' expected [01 Feb 2] but found [01 Feb 21],
+Product details mismatch | Field: Benchmark | Expected: 'Nifty 20' | Actual: 'Nifty 200' expected [Nifty 20] but found [Nifty 200],
+Product details mismatch | Field: Methodology | Expected: 'Fundamenta' | Actual: 'Fundamental' expected [Fundamenta] but found [Fundamental],
+Product details mismatch | Field: No. of Stocks | Expected: '15-2' | Actual: '15-20' expected [15-2] but found [15-20]]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: The following asserts failed:
+Product details mismatch | Field: Inception Date | Expected: '01 Feb 2' | Actual: '01 Feb 21' expected [01 Feb 2] but found [01 Feb 21],
+Product details mismatch | Field: Benchmark | Expected: 'Nifty 20' | Actual: 'Nifty 200' expected [Nifty 20] but found [Nifty 200],
+Product details mismatch | Field: Methodology | Expected: 'Fundamenta' | Actual: 'Fundamental' expected [Fundamenta] but found [Fundamental],
+Product details mismatch | Field: No. of Stocks | Expected: '15-2' | Actual: '15-20' expected [15-2] but found [15-20]
+at org.testng.asserts.SoftAssert.assertAll(SoftAssert.java:46)
+at org.testng.asserts.SoftAssert.assertAll(SoftAssert.java:30)
+at pages.ProductPage.assertProductDetails(ProductPage.java:204)
+at tests.LoginTest.ProductFlowTest(LoginTest.java:46)
+at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:141)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:687)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:230)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:995)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:203)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:154)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:134)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+at org.testng.TestRunner.privateRun(TestRunner.java:741)
+at org.testng.TestRunner.run(TestRunner.java:616)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:421)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:413)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:373)
+at org.testng.SuiteRunner.run(SuiteRunner.java:312)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1274)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1208)
+at org.testng.TestNG.runSuites(TestNG.java:1112)
+at org.testng.TestNG.run(TestNG.java:1079)
+at org.testng.remote.AbstractRemoteTestNG.run(AbstractRemoteTestNG.java:115)
+at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:293)
+at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:91)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
           <reporter-output>
           </reporter-output>
         </test-method> <!-- ProductFlowTest -->
-        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:54 IST" name="captureFailureScreenshot" finished-at="2026-02-10T18:09:54 IST" duration-ms="0" status="PASS">
+        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:33 IST" name="captureFailureScreenshot" finished-at="2026-02-11T14:44:33 IST" duration-ms="2" status="PASS">
           <params>
             <param index="0">
               <value>
-                <![CDATA[[TestResult name=ProductFlowTest status=SUCCESS method=LoginTest.ProductFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef] output={null}]]]>
+                <![CDATA[[TestResult name=ProductFlowTest status=FAILURE method=LoginTest.ProductFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef] output={null}]]]>
               </value>
             </param>
           </params>
           <reporter-output>
           </reporter-output>
         </test-method> <!-- captureFailureScreenshot -->
-        <test-method signature="investFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:09:54 IST" name="investFlowTest" finished-at="2026-02-10T18:10:22 IST" depends-on-methods="tests.LoginTest.ProductFlowTest" duration-ms="27047" status="PASS">
+        <test-method signature="investFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:33 IST" name="investFlowTest" finished-at="2026-02-11T14:44:33 IST" depends-on-methods="tests.LoginTest.ProductFlowTest" duration-ms="0" status="SKIP">
+          <exception class="java.lang.Throwable">
+            <message>
+              <![CDATA[Method tests.LoginTest.investFlowTest() on instance tests.LoginTest@1dac5ef depends on not successfully finished methods 
+[tests.LoginTest.ProductFlowTest() on instance tests.LoginTest@1dac5ef]]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.Throwable: Method tests.LoginTest.investFlowTest() on instance tests.LoginTest@1dac5ef depends on not successfully finished methods 
+[tests.LoginTest.ProductFlowTest() on instance tests.LoginTest@1dac5ef]
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:159)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:154)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:134)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+at org.testng.TestRunner.privateRun(TestRunner.java:741)
+at org.testng.TestRunner.run(TestRunner.java:616)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:421)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:413)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:373)
+at org.testng.SuiteRunner.run(SuiteRunner.java:312)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1274)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1208)
+at org.testng.TestNG.runSuites(TestNG.java:1112)
+at org.testng.TestNG.run(TestNG.java:1079)
+at org.testng.remote.AbstractRemoteTestNG.run(AbstractRemoteTestNG.java:115)
+at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:293)
+at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:91)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.Throwable -->
           <reporter-output>
           </reporter-output>
         </test-method> <!-- investFlowTest -->
-        <test-method is-config="true" signature="captureFailureScreenshot(org.testng.ITestResult)[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:10:22 IST" name="captureFailureScreenshot" finished-at="2026-02-10T18:10:22 IST" duration-ms="2" status="PASS">
-          <params>
-            <param index="0">
-              <value>
-                <![CDATA[[TestResult name=investFlowTest status=SUCCESS method=LoginTest.investFlowTest()[pri:2, instance:tests.LoginTest@1dac5ef] output={null}]]]>
-              </value>
-            </param>
-          </params>
-          <reporter-output>
-          </reporter-output>
-        </test-method> <!-- captureFailureScreenshot -->
-        <test-method is-config="true" signature="tearDown()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:10:22 IST" name="tearDown" finished-at="2026-02-10T18:10:22 IST" duration-ms="792" status="PASS">
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:33 IST" name="tearDown" finished-at="2026-02-11T14:44:34 IST" duration-ms="966" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- tearDown -->
-        <test-method is-config="true" signature="afterSuite()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-10T18:10:23 IST" name="afterSuite" finished-at="2026-02-10T18:10:23 IST" duration-ms="39" status="PASS">
+        <test-method is-config="true" signature="afterSuite()[pri:0, instance:tests.LoginTest@1dac5ef]" started-at="2026-02-11T14:44:35 IST" name="afterSuite" finished-at="2026-02-11T14:44:35 IST" duration-ms="77" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- afterSuite -->

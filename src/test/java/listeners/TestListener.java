@@ -29,16 +29,17 @@ public class TestListener implements ITestListener {
 	public void onTestFailure(ITestResult result) {
 
 		String screenshotPath = UtilsMethod.captureScreenshot(result.getMethod().getMethodName());
+		String cleanFailureMessage = ExcelLogger.extractSoftAssertFailures(result.getThrowable());
 
-		testThread.get().fail(result.getThrowable(),
+		testThread.get().fail(cleanFailureMessage,
 				MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
 
-		ExcelLogger.log(result.getName(), "Test Failed", "FAIL", result.getThrowable().getMessage());
+		ExcelLogger.log(result.getName(), "Test Failed", "FAIL", cleanFailureMessage);
 
 		ExecutionSummary.failed++;
 
 		ExecutionSummary.failedTests.add(new ExecutionSummary.FailedTest(result.getMethod().getMethodName(),
-				result.getTestClass().getName(), result.getThrowable().getMessage()));
+				result.getTestClass().getName(), cleanFailureMessage));
 	}
 
 	@Override
@@ -54,17 +55,10 @@ public class TestListener implements ITestListener {
 		ExecutionSummary.endTime = System.currentTimeMillis();
 	}
 
-	/*
-	 * @Override public void onTestSkipped(ITestResult result) {
-	 * testThread.get().skip("Test Skipped: " + result.getThrowable());
-	 * ExecutionSummary.skipped++; }
-	 */
-
 	@Override
 	public void onTestSkipped(ITestResult result) {
 		String reason = result.getThrowable() != null ? result.getThrowable().getMessage()
 				: "Skipped due to dependency failure";
-
 		testThread.get().skip(reason);
 		ExecutionSummary.skipped++;
 	}
