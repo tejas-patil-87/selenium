@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_DIR">${sys:user.dir}/logs</Property>
+        <Property name="LOG_PATTERN">%d{dd-MM-yyyy HH:mm:ss} [%t] %-5level %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console output (same as before, but with timestamp + class name) -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+        </Console>
+
+        <!-- File output - all logs saved here -->
+        <RollingFile name="FileLog" fileName="${LOG_DIR}/automation.log"
+                     filePattern="${LOG_DIR}/automation-%d{dd-MM-yyyy}.log">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Framework logs -->
+        <Logger name="utils" level="INFO" additivity="false">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="FileLog" />
+        </Logger>
+        <Logger name="pages" level="INFO" additivity="false">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="FileLog" />
+        </Logger>
+        <Logger name="drivers" level="INFO" additivity="false">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="FileLog" />
+        </Logger>
+        <Logger name="tests" level="INFO" additivity="false">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="FileLog" />
+        </Logger>
+
+        <!-- Suppress noisy third-party logs -->
+        <Logger name="org.openqa.selenium" level="WARN" />
+        <Logger name="io.github.bonigarcia" level="WARN" />
+
+        <Root level="INFO">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="FileLog" />
+        </Root>
+    </Loggers>
+</Configuration>
