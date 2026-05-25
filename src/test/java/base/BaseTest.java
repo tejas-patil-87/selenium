@@ -1,9 +1,7 @@
 package base;
 
 import org.openqa.selenium.WebDriver;
-import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
@@ -26,6 +24,7 @@ public class BaseTest {
 		ExcelLogger.cleanLogDirectory();
 		ExcelLogger.initializeLogFile();
 		DBUtils.cleanOtpData();
+		DBUtils.cleanClientData();
 	}
 
 	@BeforeClass
@@ -33,13 +32,6 @@ public class BaseTest {
 		DriverFactory.initDriver();
 		driver = DriverFactory.getDriver();
 
-	}
-
-	@AfterMethod
-	public void captureFailureScreenshot(ITestResult result) {
-		if (ITestResult.FAILURE == result.getStatus()) {
-			// UtilsMethod.captureScreenshot(result.getName());
-		}
 	}
 
 	@AfterClass(alwaysRun = true)

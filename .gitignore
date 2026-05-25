@@ -1,8 +1,31 @@
+# Build output
 /target/
 /bin/
+
+# Generated reports & artifacts
 /logs/
-/screenshotzip/
 /reports/
+/screenshotzip/
 /test-output/
+/allure-results/
+
+# IDE files
+.settings/
+.classpath
+.project
+*.iml
+.idea/
+
+# Temp & log files
 *.log
 *.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Sensitive files - never commit
+src/main/resources/credentials.properties
+
+# One-time generator (delete after use)
+src/main/java/utils/GenerateTestData.java

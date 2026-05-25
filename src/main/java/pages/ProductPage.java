@@ -1,5 +1,6 @@
 package pages;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.openqa.selenium.By;
@@ -7,10 +8,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import org.testng.Assert;
-import org.testng.asserts.SoftAssert;
 
-import utils.ConfigReader;
 import utils.UtilsMethod;
 
 public class ProductPage extends BasePage {
@@ -21,29 +19,40 @@ public class ProductPage extends BasePage {
 	}
 
 	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div")
-	private WebElement popUp;
+	private WebElement advisePopup;
 
 	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div/div[1]/div/a")
-	private WebElement closeButton;
+	private WebElement adviseCloseBtn;
 
 	@FindBy(xpath = "//div[contains(@class,'card_tooltip')]")
 	private List<WebElement> titleElements;
 
-	public void handlePopupIfPresent(String expectedTitle) {
-		boolean tabOpened = waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
-		Assert.assertTrue(tabOpened, "Navigation failed | Expected: Page title = '" + expectedTitle
-				+ "' | Actual: User stayed on previous page");
-		if (waitHelper.isElementVisible(popUp, 5)) {
-			waitHelper.click(closeButton, 5);
+	public boolean switchToTabByTitle(String expectedTitle) {
+		return waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
+	}
+
+	public void closePopupIfPresent() {
+		if (waitHelper.isElementVisible(advisePopup, 2)) {
+			waitHelper.click(adviseCloseBtn, 5);
 		}
 	}
 
-	public void changeTabAndVerifyProduct(String expectedProduct) {
-		List<String> titles = InvestmentPage.getProductTitles(titleElements);
-		Assert.assertFalse(titles.isEmpty(),
-				"Product verification failed | Expected: Product list should be displayed | Actual: No products were found");
-		Assert.assertTrue(titles.contains(expectedProduct), "Product verification failed | Expected product: '"
-				+ expectedProduct + "' | Actual products shown: " + titles);
+	private static final String TAB_BY_NAME = "//div[@id='productElement']//a[contains(@class,'tab') and normalize-space()='%s']";
+
+	public void clickProductTab(String tabName) {
+		By tabLocator = By.xpath(String.format(TAB_BY_NAME, tabName));
+		waitHelper.click(tabLocator, 10);
+	}
+
+	public List<String> getProductTitles() {
+		List<String> titles = new ArrayList<>();
+		for (WebElement element : titleElements) {
+			String title = element.getAttribute("title");
+			if (title != null && !title.trim().isEmpty()) {
+				titles.add(title.trim());
+			}
+		}
+		return titles;
 	}
 
 	private static final String PRODUCT_CARD_BY_TITLE = "//div[contains(@class,'product-card')][.//div[contains(@class,'card_tooltip') and @title='%s']]";
@@ -53,35 +62,29 @@ public class ProductPage extends BasePage {
 
 	private static final By HORIZON_REL = By.xpath(".//div[normalize-space()='Horizon']/preceding-sibling::div[1]");
 
-	public void verifyProductCardDetails(String productTitle, String expectedMinInvestment, String expectedHorizon) {
-		String CARDXPATH = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
-		By PRODUCTCARDBY = By.xpath(CARDXPATH);
-		WebElement PRODUCTCARD = waitHelper.waitForVisibility(PRODUCTCARDBY, 10);
-		String ACTUALMININVESTMENT = waitHelper.getText(PRODUCTCARD, MIN_INVESTMENT_REL, 2);
-		String ACTUALHORIZON = waitHelper.getText(PRODUCTCARD, HORIZON_REL, 2);
-		Assert.assertEquals(ACTUALMININVESTMENT, expectedMinInvestment,
-				"Product card validation failed | Field: Min Investment | Product: '" + productTitle + "' | Expected: '"
-						+ expectedMinInvestment + "' | Actual: '" + ACTUALMININVESTMENT + "'");
-		Assert.assertEquals(ACTUALHORIZON, expectedHorizon,
-				"Product card validation failed | Field: Horizon | Product: '" + productTitle + "' | Expected: '"
-						+ expectedHorizon + "' | Actual: '" + ACTUALHORIZON + "'");
+	public String[] getProductCardDetails(String productTitle) {
+		String cardXpath = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
+		WebElement productCard = waitHelper.waitForVisibility(By.xpath(cardXpath), 10);
+		String minInvestment = waitHelper.getText(productCard, MIN_INVESTMENT_REL, 2);
+		String horizon = waitHelper.getText(productCard, HORIZON_REL, 2);
+		return new String[] { minInvestment, horizon };
 	}
 
-	public static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
-	public static final String PRODUCT_CARD = "//div[contains(@class,'product-card')][.//div[@title='%s']]";
+	private static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
+	private static final String PRODUCT_CARD = "//div[contains(@class,'product-card')][.//div[@title='%s']]";
 
 	public void clickInvestNowByProductTitle(String productTitle) {
 		if (productTitle == null || productTitle.trim().isEmpty()) {
 			throw new IllegalArgumentException("Product title is null or empty");
 		}
-		By PRODUCTCARDBY = By.xpath(String.format(PRODUCT_CARD, productTitle));
-		By INVESTNOWBY = By.xpath(String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle));
-		waitHelper.waitForVisibility(PRODUCTCARDBY, 10);
-		UtilsMethod.scrollIntoView(driver, INVESTNOWBY);
-		if (waitHelper.isElementEnabled(INVESTNOWBY, 5)) {
-			waitHelper.click(INVESTNOWBY, 5);
+		By productCardBy = By.xpath(String.format(PRODUCT_CARD, productTitle));
+		By investNowBy = By.xpath(String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle));
+		waitHelper.waitForVisibility(productCardBy, 10);
+		UtilsMethod.scrollIntoView(driver, investNowBy);
+		if (waitHelper.isElementEnabled(investNowBy, 5)) {
+			waitHelper.click(investNowBy, 5);
 		} else {
-			UtilsMethod.clickWithJS(driver, INVESTNOWBY);
+			UtilsMethod.clickWithJS(driver, investNowBy);
 		}
 	}
 
@@ -146,10 +149,10 @@ public class ProductPage extends BasePage {
 	private WebElement currentValueText;
 
 	@FindBy(xpath = "//p[text()='Min Investment']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	private WebElement min_InvestmentValue;
+	private WebElement minInvestmentValue;
 
 	@FindBy(xpath = "//p[text()='Horizon']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
-	private WebElement horizon_Value;
+	private WebElement horizonValue;
 
 	@FindBy(xpath = "//p[text()='Inception Date']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
 	private WebElement inceptionDateValue;
@@ -160,55 +163,21 @@ public class ProductPage extends BasePage {
 	@FindBy(xpath = "//p[text()='Methodology']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
 	private WebElement methodologyValue;
 
-	private By NO_OF_STOCKS_VALUE = By.xpath("//p[normalize-space()='No. of Stocks']"
+	private static final By NO_OF_STOCKS_BY = By.xpath("//p[normalize-space()='No. of Stocks']"
 			+ "/ancestor::div[contains(@class,'twoblock')]" + "//div[@class='col text-right']//p");
 
 	public ProductDetails fetchProductDetails() {
-
-		ProductDetails details = new ProductDetails(waitHelper.getText(currentValueText, 1),
-				waitHelper.getText(min_InvestmentValue, 1), waitHelper.getText(horizon_Value, 1),
-				waitHelper.getText(inceptionDateValue, 1), waitHelper.getText(benchmarkValue, 1),
-				waitHelper.getText(methodologyValue, 1), waitHelper.getText(NO_OF_STOCKS_VALUE, 1));
-
-		// System.out.println("Fetched Product Details: " + details);
-		return details;
-	}
-
-	public void assertProductDetails(ProductDetails actual) {
-		SoftAssert sa = new SoftAssert();
-
-		sa.assertEquals(actual.getCurrentValue(), ConfigReader.get("product.current.value"),
-				"Product details mismatch | Field: Current Value | Expected: '"
-						+ ConfigReader.get("product.current.value") + "' | Actual: '" + actual.getCurrentValue() + "'");
-		sa.assertEquals(actual.getMinInvestment(), ConfigReader.get("product.min.investment"),
-				"Product details mismatch | Field: Min Investment | Expected: '"
-						+ ConfigReader.get("product.min.investment") + "' | Actual: '" + actual.getMinInvestment()
-						+ "'");
-		sa.assertEquals(actual.getHorizon(), ConfigReader.get("product.horizon"),
-				"Product details mismatch | Field: Horizon | Expected: '" + ConfigReader.get("product.horizon")
-						+ "' | Actual: '" + actual.getHorizon() + "'");
-		sa.assertEquals(actual.getInceptionDate(), ConfigReader.get("product.inception.date"),
-				"Product details mismatch | Field: Inception Date | Expected: '"
-						+ ConfigReader.get("product.inception.date") + "' | Actual: '" + actual.getInceptionDate()
-						+ "'");
-		sa.assertEquals(actual.getBenchmark(), ConfigReader.get("product.benchmark"),
-				"Product details mismatch | Field: Benchmark | Expected: '" + ConfigReader.get("product.benchmark")
-						+ "' | Actual: '" + actual.getBenchmark() + "'");
-		sa.assertEquals(actual.getMethodology(), ConfigReader.get("product.methodology"),
-				"Product details mismatch | Field: Methodology | Expected: '" + ConfigReader.get("product.methodology")
-						+ "' | Actual: '" + actual.getMethodology() + "'");
-		sa.assertEquals(actual.getNoOfStocks(), ConfigReader.get("product.no.of.stocks"),
-				"Product details mismatch | Field: No. of Stocks | Expected: '"
-						+ ConfigReader.get("product.no.of.stocks") + "' | Actual: '" + actual.getNoOfStocks() + "'");
-
-		sa.assertAll();
+		return new ProductDetails(waitHelper.getText(currentValueText, 10),
+				waitHelper.getText(minInvestmentValue, 5), waitHelper.getText(horizonValue, 5),
+				waitHelper.getText(inceptionDateValue, 5), waitHelper.getText(benchmarkValue, 5),
+				waitHelper.getText(methodologyValue, 5), waitHelper.getText(NO_OF_STOCKS_BY, 5));
 	}
 
 	@FindBy(xpath = "//a[normalize-space()='Invest Lumpsum']")
-	private WebElement InvestLumpsumBtn;
+	private WebElement investLumpsumBtn;
 
 	public void clickInvestLumpsum() {
-		waitHelper.click(InvestLumpsumBtn, 10);
+		waitHelper.click(investLumpsumBtn, 10);
 	}
 
 }

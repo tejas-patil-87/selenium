@@ -17,10 +17,14 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import drivers.DriverFactory;
 
 public class UtilsMethod {
+
+	private static final Logger log = LoggerFactory.getLogger(UtilsMethod.class);
 
 	private UtilsMethod() {
 
@@ -42,6 +46,7 @@ public class UtilsMethod {
 			}
 			File src = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 			FileUtils.copyFile(src, new File(fullPath));
+			log.info("Screenshot captured: {}", fileName);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to capture screenshot", e);
 		}
@@ -63,7 +68,7 @@ public class UtilsMethod {
 				file.delete();
 			}
 		}
-		System.out.println("Screenshot Directory Cleaned");
+		log.info("Screenshot directory cleaned");
 	}
 
 	public static void zipScreenshots() {
@@ -71,7 +76,7 @@ public class UtilsMethod {
 		File sourceFolder = new File(FrameworkConstants.SCREENSHOT_DIR);
 
 		if (!sourceFolder.exists() || sourceFolder.listFiles() == null || sourceFolder.listFiles().length == 0) {
-			System.out.println("No screenshots found to zip.");
+			log.info("No screenshots found to zip");
 			return;
 		}
 		new File(FrameworkConstants.ZIP_DIR).mkdirs();
@@ -83,6 +88,7 @@ public class UtilsMethod {
 					addFileToZip(file, zos);
 				}
 			}
+			log.info("Screenshots zipped: {}", zipPath);
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to zip screenshots", e);
 		}
@@ -106,7 +112,7 @@ public class UtilsMethod {
 		File dir = new File(zipDirPath);
 
 		if (!dir.exists() || dir.listFiles() == null) {
-			System.out.println("Zip directory not found or empty.");
+			log.info("Zip directory not found or empty");
 			return;
 		}
 		for (File file : dir.listFiles()) {
@@ -114,7 +120,7 @@ public class UtilsMethod {
 				file.delete();
 			}
 		}
-		System.out.println("All zip files Cleaned");
+		log.info("All zip files cleaned");
 	}
 
 	public static void fillOTP(List<WebElement> otpFields, String value) {

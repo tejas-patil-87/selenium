@@ -8,9 +8,12 @@ import java.util.Date;
 import java.util.Properties;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class EmailUtil {
 
+	private static final Logger log = LoggerFactory.getLogger(EmailUtil.class);
 	private EmailUtil() {
 	}
 
@@ -53,7 +56,7 @@ public final class EmailUtil {
 			message.setContent(multipart);
 			Transport.send(message);
 
-			System.out.println("Execution report email sent successfully.");
+			log.info("Execution report email sent successfully");
 
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to send email", e);
@@ -66,7 +69,7 @@ public final class EmailUtil {
 
 		File file = new File(filePath);
 		if (!file.exists()) {
-			System.out.println("Attachment not found: " + filePath);
+			log.warn("Attachment not found: {}", filePath);
 			return;
 		}
 
@@ -82,10 +85,10 @@ public final class EmailUtil {
 		html = html.replace("{{PROJECT_NAME}}", ConfigReader.get("project.name"));
 		html = html.replace("{{ENV}}", ConfigReader.get("env"));
 		html = html.replace("{{EXECUTION_DATE}}", new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date()));
-		html = html.replace("{{TOTAL_TESTS}}", String.valueOf(ExecutionSummary.totalTests));
-		html = html.replace("{{PASSED}}", String.valueOf(ExecutionSummary.passed));
-		html = html.replace("{{FAILED}}", String.valueOf(ExecutionSummary.failed));
-		html = html.replace("{{SKIPPED}}", String.valueOf(ExecutionSummary.skipped));
+		html = html.replace("{{TOTAL_TESTS}}", String.valueOf(ExecutionSummary.totalTests.get()));
+		html = html.replace("{{PASSED}}", String.valueOf(ExecutionSummary.passed.get()));
+		html = html.replace("{{FAILED}}", String.valueOf(ExecutionSummary.failed.get()));
+		html = html.replace("{{SKIPPED}}", String.valueOf(ExecutionSummary.skipped.get()));
 		html = html.replace("{{EXECUTION_TIME}}", ExecutionSummary.getExecutionTime());
 
 		html = html.replace("{{FAILED_TEST_ROWS}}", ExecutionSummary.buildFailedRows());

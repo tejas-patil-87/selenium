@@ -8,8 +8,11 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WaitHelper {
+	private static final Logger log = LoggerFactory.getLogger(WaitHelper.class);
 	private WebDriver driver;
 
 	private WebDriverWait getWait(long timeoutSeconds) {
@@ -110,6 +113,16 @@ public class WaitHelper {
 		}
 	}
 
+	public void waitForToastToDisappearSafely(WebElement toastElement, long timeoutSeconds) {
+		try {
+
+			getWait(timeoutSeconds).until(ExpectedConditions.or(ExpectedConditions.invisibilityOf(toastElement),
+					ExpectedConditions.stalenessOf(toastElement)));
+		} catch (TimeoutException e) {
+			log.debug("Toast did not disappear within timeout");
+		}
+	}
+
 	/* ================= Custom Methods ================= */
 	public boolean waitForTabAndSwitchByTitle(String expectedTitle, int timeoutSeconds) {
 		return getWait(timeoutSeconds).until(driver -> {
@@ -121,6 +134,18 @@ public class WaitHelper {
 			}
 			return false;
 		});
+	}
+
+	public String waitForTextToNotBe(By locator, String unwantedText, int timeoutSeconds) {
+		getWait(timeoutSeconds).until(driver -> {
+			try {
+				String actual = driver.findElement(locator).getText().trim();
+				return !actual.isEmpty() && !actual.equalsIgnoreCase(unwantedText);
+			} catch (StaleElementReferenceException e) {
+				return false;
+			}
+		});
+		return driver.findElement(locator).getText().trim();
 	}
 
 	public String waitForTextToBe(By locator, String expectedText, int timeoutSeconds) {

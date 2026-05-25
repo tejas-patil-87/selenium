@@ -1,3 +1,24 @@
-<listeners>
-    <listener class-name="listeners.TestListener"/>
-</listeners>
+<suite name="Automation Test Suite" verbose="1">
+
+	<!-- Listeners -->
+	<listeners>
+		<listener class-name="listeners.TestListener" />
+		<listener class-name="listeners.RetryTransformer" />
+	</listeners>
+
+	<test name="Negative Tests">
+
+		<!-- Run only tests marked as 'negative' -->
+		<groups>
+			<run>
+				<include name="negative" />
+			</run>
+		</groups>
+
+		<classes>
+			<class name="tests.InvestmentNegativeTest" />
+		</classes>
+
+	</test>
+
+</suite>

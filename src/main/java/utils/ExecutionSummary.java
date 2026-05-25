@@ -1,18 +1,19 @@
 package utils;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExecutionSummary {
 
-	public static int totalTests = 0;
-	public static int passed = 0;
-	public static int failed = 0;
-	public static int skipped = 0;
+	public static AtomicInteger totalTests = new AtomicInteger(0);
+	public static AtomicInteger passed = new AtomicInteger(0);
+	public static AtomicInteger failed = new AtomicInteger(0);
+	public static AtomicInteger skipped = new AtomicInteger(0);
 	public static long startTime;
 	public static long endTime;
 
-	public static List<FailedTest> failedTests = new ArrayList<>();
+	public static List<FailedTest> failedTests = new CopyOnWriteArrayList<>();
 
 	public static String getExecutionTime() {
 		long duration = endTime - startTime;

@@ -7,6 +7,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import utils.ConfigReader;
 import utils.UtilsMethod;
 
 public class LoginPage extends BasePage {
@@ -17,102 +18,91 @@ public class LoginPage extends BasePage {
 	}
 
 	@FindBy(id = "userID")
-	public WebElement userID;
+	private WebElement userID;
 
 	@FindBy(id = "advisor-password")
-	public WebElement password;
+	private WebElement password;
 
-	@FindBy(xpath = "//button[contains(@class,'login-btn') and normalize-space()='Login']")
-	public WebElement loginbutton;
+	@FindBy(xpath = "//a[normalize-space()='Login' and @type='button']")
+	private WebElement loginBtn;
 
 	public void clickLoginButton() {
-		waitHelper.waitForClickable(loginbutton, 10).click();
+		waitHelper.click(loginBtn, 10);
 	}
 
-	public void fillOTP(List<WebElement> otpFields, String OTP) {
+	private void fillOTP(List<WebElement> otpFields, String OTP, By locator) {
+		waitHelper.waitForVisibility(locator, 10);
 		UtilsMethod.fillOTP(otpFields, OTP);
-
 	}
 
-	@FindBy(xpath = "//div[contains(@class,'otp-field')]//input")
-	public List<WebElement> OTP;
+	private static final By OTP_FIELDS = By.xpath("//div[@class='otp-field']//input[starts-with(@id,'otp-field')]");
 
-	@FindBy(xpath = "//button[contains(@class,'login-btn') and normalize-space()='Submit']")
-	public WebElement Submit;
+	@FindBy(xpath = "//div[@class='otp-field']//input[starts-with(@id,'otp-field')]")
+	private List<WebElement> advisorOtpFields;
+
+	@FindBy(xpath = "//a[normalize-space()='Submit' and contains(@class,'cta')]")
+	private WebElement submitBtn;
 
 	public void clickSubmitButton() {
-		waitHelper.waitForClickable(Submit, 10).click();
+		waitHelper.click(submitBtn, 10);
 	}
 
 	@FindBy(xpath = "//input[@id='client-code']")
-	public WebElement clientCode;
+	private WebElement clientCodeInput;
 
-	@FindBy(xpath = "//button[contains(@class,'login-btn') and contains(normalize-space(),'Logout and Continue here')]")
-	public WebElement logoutAndContinue;
+	@FindBy(xpath = "//a[contains(@class,'cta') and normalize-space()='IAP / IMP']")
+	private WebElement iapImpBtn;
+
+	public void clickOnIapImp() {
+		waitHelper.click(iapImpBtn, 5);
+	}
+
+	@FindBy(xpath = "//a[normalize-space()='Logout and Continue here']")
+	private WebElement logoutAndContinueBtn;
 
 	public void clickLogoutAndContinue() {
-		waitHelper.waitForClickable(logoutAndContinue, 10).click();
+		waitHelper.click(logoutAndContinueBtn, 10);
 	}
 
-	@FindBy(xpath = "//button[contains(@class,'login-btn') and normalize-space()='Get Data']")
-	public WebElement getDataBtn;
+	@FindBy(xpath = "//a[contains(@class,'cta-big') and normalize-space()='Get Data']")
+	private WebElement getDataBtn;
 
 	public void clickGetDataButton() {
-		waitHelper.waitForClickable(getDataBtn, 10).click();
+		waitHelper.click(getDataBtn, 10);
 	}
 
-	@FindBy(xpath = "//span[contains(@class,'iap-click-here') and normalize-space()='Go to IMP']")
-	public WebElement goToImp;
+	@FindBy(xpath = "(//span[normalize-space()='Go to IMP'])[1]")
+	private WebElement goToImpBtn;
 
 	public void clickGoToImp() {
-		waitHelper.waitForClickable(goToImp, 10).click();
+		waitHelper.click(goToImpBtn, 10);
 	}
 
-	@FindBy(xpath = "//div[contains(@class,'advisor-client-otp-wrapper')]")
-	public WebElement clientOTPSection;
+	private static final By CLIENT_OTP_FIELDS = By.xpath("//div[contains(@class,'advisor-client-otp-wrapper')]//input[starts-with(@id,'otp-field')]");
 
 	@FindBy(xpath = "//div[contains(@class,'advisor-client-otp-wrapper')]//input[starts-with(@id,'otp-field')]")
-	public List<WebElement> clientOTP;
+	private List<WebElement> clientOtpFields;
 
-	@FindBy(xpath = "//div[contains(@class,'advisor-client-otp-wrapper')]//button[contains(@class,'login-btn') and normalize-space()='Submit']")
-	public WebElement clientOTPSubmit;
+	@FindBy(xpath = "//a[@type='button' and normalize-space()='Submit']")
+	private WebElement clientOtpSubmitBtn;
 
 	public void submitClientOtp() {
-		waitHelper.waitForClickable(clientOTPSubmit, 10).click();
+		waitHelper.click(clientOtpSubmitBtn, 10);
 	}
 
-	@FindBy(xpath = "//div[@class='fourblock ml15 hide-scrollbar']")
-	public WebElement panel;
-
-	@FindBy(css = ".product-card")
-	public List<WebElement> productCards;
-
-	@FindBy(xpath = "//a[normalize-space()='Invest Lumpsum']")
-	private WebElement investLumpsumBtn;
-
-	@FindBy(xpath = "//div[contains(@class,'investment-modal')]")
-	private WebElement investmentModal;
-
-	@FindBy(xpath = "//button[normalize-space()='Next']")
-	private WebElement nextBtn;
-
-	@FindBy(xpath = "//div[contains(@class,'activation-modal')]")
-	private WebElement activationModal;
-
-	@FindBy(xpath = "//button[contains(@id,'amount')]")
-	public List<WebElement> amountButtons;
-
-//	public void fillOTP(List<WebElement> otpFields, String value) {
-//		UtilsMethod.f
-//	}
-
-	public void selectAmount(int index) {
-		By amountBtn = By.xpath("//button[@id='" + index + "']");
-		waitHelper.click(amountBtn, 5);
-	}
-
-	public void clickNext() {
-		waitHelper.click(nextBtn, 5);
+	public void loginToApplication() {
+		waitHelper.waitForVisibility(userID, 10).sendKeys(ConfigReader.get("auth.user.id"));
+		waitHelper.waitForVisibility(password, 10).sendKeys(ConfigReader.get("auth.user.password"));
+		clickLoginButton();
+		fillOTP(advisorOtpFields, ConfigReader.get("auth.otp"), OTP_FIELDS);
+		clickSubmitButton();
+		clickLogoutAndContinue();
+		clickOnIapImp();
+		clientCodeInput.sendKeys(ConfigReader.get("auth.client.code"));
+		clickGetDataButton();
+		clickGoToImp();
+		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_FIELDS);
+		submitClientOtp();
 	}
 
 }
