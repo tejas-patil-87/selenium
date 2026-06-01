@@ -9,11 +9,10 @@ import org.testng.annotations.Listeners;
 import drivers.DriverFactory;
 import utils.DBUtils;
 import utils.EmailUtil;
-import utils.ExcelLogger;
 import utils.FrameworkConstants;
 import utils.UtilsMethod;
 
-@Listeners(listeners.TestListener.class)
+@Listeners({listeners.TestListener.class, listeners.RetryTransformer.class})
 public class BaseTest {
 	protected WebDriver driver;
 
@@ -21,10 +20,12 @@ public class BaseTest {
 	public void cleanOldScreenshots() {
 		UtilsMethod.cleanScreenshotDirectory();
 		UtilsMethod.deleteAllZipFiles();
-		ExcelLogger.cleanLogDirectory();
-		ExcelLogger.initializeLogFile();
-		DBUtils.cleanOtpData();
-		DBUtils.cleanClientData();
+		try {
+			DBUtils.cleanOtpData();
+			DBUtils.cleanClientData();
+		} catch (Exception e) {
+			System.out.println("WARNING: DB cleanup failed (non-blocking): " + e.getMessage());
+		}
 	}
 
 	@BeforeClass

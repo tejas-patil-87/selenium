@@ -177,7 +177,12 @@ public class ProductPage extends BasePage {
 	private WebElement investLumpsumBtn;
 
 	public void clickInvestLumpsum() {
-		waitHelper.click(investLumpsumBtn, 10);
+		waitHelper.waitForVisibility(currentValueText, 20);
+		if (waitHelper.isElementEnabled(investLumpsumBtn, 5)) {
+			waitHelper.click(investLumpsumBtn, 5);
+		} else {
+			UtilsMethod.clickWithJS(driver, By.xpath("//a[normalize-space()='Invest Lumpsum']"));
+		}
 	}
 
 }

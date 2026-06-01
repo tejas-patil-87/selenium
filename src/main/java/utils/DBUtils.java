@@ -101,9 +101,36 @@ public class DBUtils {
 		}
 	}
 
+	public static boolean isSubscriptionDataPresent(int investmentAmount, String clientCode, String productCode) {
+
+		String query = "SELECT 1 FROM MOSLACEAdvisioryDB..tbl_Subscription WHERE ClientCode = ? "
+				+ "AND InvestmentAmount = ? AND RTRIM(ProductCode) = ?";
+
+		try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(query)) {
+
+			ps.setString(1, clientCode);
+			ps.setInt(2, investmentAmount);
+			ps.setString(3, productCode);
+
+			ResultSet rs = ps.executeQuery();
+			boolean found = rs.next();
+			if (found) {
+				log.info("Investment amount {} and subscription done successfully for ClientCode={}, ProductCode={}",
+						investmentAmount, clientCode, productCode);
+			} else {
+				log.warn("No subscription found for ClientCode={}, ProductCode={}, Amount={}",
+						clientCode, productCode, investmentAmount);
+			}
+			return found;
+
+		} catch (SQLException e) {
+			throw new RuntimeException("Failed to verify subscription data", e);
+		}
+	}
+
 	public static void cleanClientData() {
 		String clientCode = ConfigReader.get("auth.client.code");
-		String productCode = ExcelDataReader.get("product.code");
+		String productCode =ExcelDataReader.get("product.code");
 
 		try (Connection conn = getConnection();
 				PreparedStatement ps = conn.prepareStatement(
@@ -112,6 +139,18 @@ public class DBUtils {
 			ps.setString(2, productCode);
 			ps.execute();
 			log.info("Client data cleaned successfully for ClientCode={}, ProductCode={}", clientCode, productCode);
+		} catch (SQLException e) {
+			throw new RuntimeException("Client data cleanup failed", e);
+		}
+	}
+	public static void cleanClientData(String clientCode, String productCode) {
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"EXEC MOSLACEAdvisioryDB..USP_Delete_ClientData_UAT @ClientCode = ?, @ProductCode = ?")) {
+			ps.setString(1, clientCode);
+			ps.setString(2, productCode);
+			ps.execute();
+			log.info("Client data cleaned for ClientCode={}, ProductCode={}", clientCode, productCode);
 		} catch (SQLException e) {
 			throw new RuntimeException("Client data cleanup failed", e);
 		}

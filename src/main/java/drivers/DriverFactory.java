@@ -18,18 +18,30 @@ public class DriverFactory {
 
 	public static void initDriver() {
 		String browser = ConfigReader.get("browser").toLowerCase();
+		boolean headless = "true".equals(ConfigReader.get("browser.headless"));
 		switch (browser) {
 		case "chrome":
 			ChromeOptions chromeOptions = new ChromeOptions();
 			chromeOptions.addArguments("--start-maximized");
+			if (headless) {
+				chromeOptions.addArguments("--headless=new");
+				chromeOptions.addArguments("--window-size=1920,1080");
+			}
 			tlDriver.set(new ChromeDriver(chromeOptions));
 			break;
 		case "firefox":
 			FirefoxOptions firefoxOptions = new FirefoxOptions();
+			if (headless) {
+				firefoxOptions.addArguments("--headless");
+			}
 			tlDriver.set(new FirefoxDriver(firefoxOptions));
 			break;
 		case "edge":
 			EdgeOptions edgeOptions = new EdgeOptions();
+			if (headless) {
+				edgeOptions.addArguments("--headless=new");
+				edgeOptions.addArguments("--window-size=1920,1080");
+			}
 			tlDriver.set(new EdgeDriver(edgeOptions));
 			break;
 		default:

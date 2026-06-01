@@ -180,11 +180,10 @@ public class ExcelLogger {
 
 	public static String extractSoftAssertFailures(Throwable throwable) {
 		if (throwable == null || throwable.getMessage() == null) {
-			return "Test failed due to unknown error";
+			return null;
 		}
 		String message = throwable.getMessage();
 		message = message.replace("The following asserts failed:", "").trim();
-		message = message.replaceAll("expected \\[.*?\\] but found \\[.*?\\]", "").trim();
 		message = message.replaceAll("\\n+", "\n");
 		return message;
 	}

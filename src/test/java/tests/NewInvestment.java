@@ -96,8 +96,7 @@ public class NewInvestment extends BaseTest {
 		SoftAssert sa = new SoftAssert();
 		sa.assertTrue(investmentPage.isActivationModelVisible(),
 				"Activation Model | Popup should be visible after selecting amount");
-		sa.assertEquals(investmentPage.getListIconCount(), 2,
-				"Activation Model | List icons count should be 2");
+		sa.assertEquals(investmentPage.getListIconCount(), 2, "Activation Model | List icons count should be 2");
 		sa.assertEquals(investmentPage.getPortfolioDescription(), ExcelDataReader.get("activation.model.description"),
 				"Activation Model | Portfolio description does not match expected text");
 		sa.assertEquals(investmentPage.getStandardBrokerage(),
@@ -133,22 +132,19 @@ public class NewInvestment extends BaseTest {
 				"OTP verification failed | Expected: 'Verify OTP' button should become clickable within 25 seconds | Actual: Button did not become clickable");
 
 		investmentPage.dismissDpAmcPopupIfPresent();
-
 		SoftAssert successSa = new SoftAssert();
 		boolean isSuccessPopupVisible = investmentPage.isInvestmentSuccessPopupVisible(60);
 		successSa.assertTrue(isSuccessPopupVisible,
 				"Investment failed | Expected: Success popup should appear within 60 seconds | Actual: Popup did not appear");
-
 		investmentPage.clickGoToPortfolio();
-
 		int investmentAmount = UtilsMethod.parseAmount(expectedInvestmentAmount);
 		boolean isSubscriptionPresent = DBUtils.isSubscriptionDataPresent(investmentAmount);
 		successSa.assertTrue(isSubscriptionPresent,
 				"Investment failed | Expected: Subscription entry in database for amount " + expectedInvestmentAmount
 						+ " | Actual: No matching record found in tbl_Subscription");
 		successSa.assertAll();
-
 		log.info("New Investment flow completed successfully");
 	}
 
+	
 }

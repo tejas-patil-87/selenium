@@ -7,11 +7,15 @@ Selenium-based test automation framework for the **Motilal Oswal IMP (Investment
 - Page Object Model (POM) architecture with PageFactory for maintainable test code
 - WebDriver lifecycle management via DriverFactory (ThreadLocal-based for parallel safety)
 - Selenium 4 built-in SeleniumManager for automatic ChromeDriver management (no external dependency)
+- Headless browser mode support (toggle via config for CI/CD)
 - ExtentReports with human-readable test names (via `@Test(description)`) and formatted error messages
+- Instance-aware reporting for multi-client Factory tests (shows client/product in report)
 - Excel-based test data management (`testdata.xlsx`) via ExcelDataReader with DataFormatter
+- Multi-client investment testing via TestNG @Factory + "Clients" Excel sheet
 - Excel-based execution logging with summary sheet (Apache POI)
 - Screenshot capture on failure with timestamped ZIP archival
 - Human-readable error reporting (maps Selenium exceptions to plain English)
+- Retry mechanism (auto-retry once, excludes investment execution tests)
 - Email notification with HTML body and execution summary
 - Database validation via MSSQL connectivity (subscription verification post-investment)
 - Stored Procedure integration for test data cleanup (`USP_Delete_ClientData_UAT`)
@@ -33,6 +37,7 @@ Selenium-based test automation framework for the **Motilal Oswal IMP (Investment
 - New investment flow (lump sum) with static OTP, DP AMC popup handling, and DB verification
 - Investment amount validation (negative/boundary testing via DataProvider)
 - Edit investment amount validation on confirmation screen
+- Multi-client parallel/sequential investment testing (multiple advisors, clients, products)
 - Database subscription data verification post-investment
 - Client data cleanup via stored procedure (manual or automated)
 - Cross-environment execution (UAT)

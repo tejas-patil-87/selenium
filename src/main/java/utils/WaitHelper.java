@@ -25,38 +25,46 @@ public class WaitHelper {
 	/* ================= VISIBILITY ================= */
 
 	public WebElement waitForVisibility(By locator, long timeoutSeconds) {
+		log.debug("Wait visible: {}", locator);
 		return getWait(timeoutSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator));
 	}
 
 	public WebElement waitForVisibility(WebElement element, long timeoutSeconds) {
+		log.debug("Wait visible: {}", element);
 		return getWait(timeoutSeconds).until(ExpectedConditions.visibilityOf(element));
 	}
 
 	/* ================= CLICKABLE ================= */
 
 	public WebElement waitForClickable(By locator, long timeoutSeconds) {
+		log.debug("Wait clickable: {}", locator);
 		return getWait(timeoutSeconds).until(ExpectedConditions.elementToBeClickable(locator));
 	}
 
 	public WebElement waitForClickable(WebElement element, long timeoutSeconds) {
+		log.debug("Wait clickable: {}", element);
 		return getWait(timeoutSeconds).until(ExpectedConditions.elementToBeClickable(element));
 	}
 
 	public void click(By locator, long timeoutSeconds) {
+		log.debug("Click: {}", locator);
 		waitForClickable(locator, timeoutSeconds).click();
 	}
 
 	public void click(WebElement element, long timeoutSeconds) {
+		log.debug("Click: {}", element);
 		waitForClickable(element, timeoutSeconds).click();
 	}
 
 	/* ================= TEXT ================= */
 
 	public String getText(By locator, long timeoutSeconds) {
+		log.debug("Get text: {}", locator);
 		return waitForVisibility(locator, timeoutSeconds).getText().trim();
 	}
 
 	public String getText(WebElement element, long timeoutSeconds) {
+		log.debug("Get text: {}", element);
 		return waitForVisibility(element, timeoutSeconds).getText().trim();
 	}
 

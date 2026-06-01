@@ -3,7 +3,6 @@ package listeners;
 import org.testng.*;
 import com.aventstack.extentreports.*;
 
-import utils.ExcelLogger;
 import utils.ExecutionSummary;
 import utils.ExtentManager;
 import utils.UtilsMethod;
@@ -26,6 +25,11 @@ public class TestListener implements ITestListener {
 		String testName = result.getMethod().getDescription() != null
 				? result.getMethod().getDescription()
 				: result.getMethod().getMethodName();
+		Object instance = result.getInstance();
+		String instanceInfo = instance.toString();
+		if (!instanceInfo.contains("@")) {
+			testName = testName + " | " + instanceInfo;
+		}
 		ExtentTest test = extent.createTest(testName);
 		testThread.set(test);
 	}
@@ -43,7 +47,7 @@ public class TestListener implements ITestListener {
 		long duration = endTime - startTime;
 		String tat = formatDuration(duration);
 		String screenshotPath = UtilsMethod.captureScreenshot(result.getMethod().getMethodName());
-		String cleanFailureMessage = ExcelLogger.extractSoftAssertFailures(result.getThrowable());
+		String cleanFailureMessage = extractSoftAssertFailures(result.getThrowable());
 		String finalMessage;
 		if (cleanFailureMessage == null || cleanFailureMessage.isEmpty()) {
 			finalMessage = "\n" + formatExceptionForReport(result.getThrowable());
@@ -53,7 +57,6 @@ public class TestListener implements ITestListener {
 		testThread.get().fail("❌ Test Failed -" + finalMessage,
 				MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
 		testThread.get().info("⏱ Execution Time (TAT): " + tat);
-		ExcelLogger.log(result.getName(), "Test Failed", "FAIL", finalMessage, tat);
 
 		ExecutionSummary.failed.incrementAndGet();
 		ExecutionSummary.failedTests.add(new ExecutionSummary.FailedTest(result.getMethod().getMethodName(),
@@ -105,6 +108,16 @@ public class TestListener implements ITestListener {
 		return sb.toString();
 	}
 
+	private String extractSoftAssertFailures(Throwable throwable) {
+		if (throwable == null || throwable.getMessage() == null) {
+			return null;
+		}
+		String message = throwable.getMessage();
+		message = message.replace("The following asserts failed:", "").trim();
+		message = message.replaceAll("\\n+", "\n");
+		return message;
+	}
+
 	private String formatDuration(long millis) {
 		long minutes = millis / 60000;
 		long seconds = (millis % 60000) / 1000;
@@ -124,7 +137,6 @@ public class TestListener implements ITestListener {
 		testThread.get().info("⏱ Execution Time (TAT): " + tat);
 
 		ExecutionSummary.passed.incrementAndGet();
-		ExcelLogger.log(result.getName(), "Test Passed", "PASS", "", tat);
 	}
 
 	@Override
@@ -137,8 +149,6 @@ public class TestListener implements ITestListener {
 		long suiteEndTime = System.currentTimeMillis();
 		long totalDuration = suiteEndTime - suiteStartTime;
 		String totalTat = formatDuration(totalDuration);
-		ExcelLogger.writeExecutionSummary(ExecutionSummary.totalTests.get(), ExecutionSummary.passed.get(), ExecutionSummary.failed.get(),
-				ExecutionSummary.skipped.get(), totalTat, ExecutionSummary.startTime, suiteEndTime);
 		ExtentTest summary = extent.createTest("📊 Execution Summary");
 		summary.info("⏱ Total Execution Time (TAT): " + totalTat);
 		summary.info("✅ Passed: " + ExecutionSummary.passed.get());
@@ -157,9 +167,6 @@ public class TestListener implements ITestListener {
 		testThread.get().skip(reason);
 		long startTime = (long) result.getAttribute("startTime");
 		long duration = System.currentTimeMillis() - startTime;
-
-		ExcelLogger.log(result.getMethod().getMethodName(), "Test Skipped", "SKIPPED", formatDuration(duration),
-				result.getThrowable() != null ? result.getThrowable().getMessage() : "Dependency failure");
 
 		ExecutionSummary.skipped.incrementAndGet();
 

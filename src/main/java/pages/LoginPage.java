@@ -54,14 +54,16 @@ public class LoginPage extends BasePage {
 	private WebElement iapImpBtn;
 
 	public void clickOnIapImp() {
-		waitHelper.click(iapImpBtn, 5);
+		waitHelper.click(iapImpBtn, 10);
 	}
 
 	@FindBy(xpath = "//a[normalize-space()='Logout and Continue here']")
 	private WebElement logoutAndContinueBtn;
 
-	public void clickLogoutAndContinue() {
-		waitHelper.click(logoutAndContinueBtn, 10);
+	public void clickLogoutAndContinueIfPresent() {
+		if (waitHelper.isElementVisible(logoutAndContinueBtn, 3)) {
+			waitHelper.click(logoutAndContinueBtn, 5);
+		}
 	}
 
 	@FindBy(xpath = "//a[contains(@class,'cta-big') and normalize-space()='Get Data']")
@@ -96,9 +98,24 @@ public class LoginPage extends BasePage {
 		clickLoginButton();
 		fillOTP(advisorOtpFields, ConfigReader.get("auth.otp"), OTP_FIELDS);
 		clickSubmitButton();
-		clickLogoutAndContinue();
+		clickLogoutAndContinueIfPresent();
 		clickOnIapImp();
 		clientCodeInput.sendKeys(ConfigReader.get("auth.client.code"));
+		clickGetDataButton();
+		clickGoToImp();
+		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_FIELDS);
+		submitClientOtp();
+	}
+
+	public void loginToApplication(String advisorId, String advisorPassword, String clientCode) {
+		waitHelper.waitForVisibility(userID, 10).sendKeys(advisorId);
+		waitHelper.waitForVisibility(password, 10).sendKeys(advisorPassword);
+		clickLoginButton();
+		fillOTP(advisorOtpFields, ConfigReader.get("auth.otp"), OTP_FIELDS);
+		clickSubmitButton();
+		clickLogoutAndContinueIfPresent();
+		clickOnIapImp();
+		clientCodeInput.sendKeys(clientCode);
 		clickGetDataButton();
 		clickGoToImp();
 		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_FIELDS);

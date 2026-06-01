@@ -73,6 +73,35 @@ public class SomeTest extends BaseTest {
 }
 ```
 
+### Multi-Client Factory Pattern
+```java
+public class MultiClientTest extends BaseTest {
+    @Factory(dataProvider = "clientData")
+    public MultiClientTest(String advisorId, String password, String clientCode, ...) {
+        // Store params as instance fields
+    }
+
+    @DataProvider(name = "clientData")
+    public static Object[][] clientData() {
+        return ExcelDataReader.getClientData(); // Reads "Clients" sheet
+    }
+
+    @Override
+    public String toString() {
+        return "MultiClientTest[" + clientCode + "-" + productCode + "]"; // For report differentiation
+    }
+}
+```
+
+### Method Overloading Pattern
+```java
+// Single-client (reads from config)
+public void loginToApplication() { ... }
+
+// Multi-client (accepts parameters)
+public void loginToApplication(String advisorId, String password, String clientCode) { ... }
+```
+
 ## Selenium Patterns
 
 ### Wait Strategy
@@ -139,7 +168,8 @@ Section > Field format (SoftAssert auto-appends expected/actual values):
 
 ## Data Management Pattern
 - **Test data**: Externalized in `testdata.xlsx` (Excel), accessed via `ExcelDataReader.get("key")`
-- **Infra config**: `config.properties` (browser, URLs only)
+- **Multi-client data**: "Clients" sheet in same Excel, accessed via `ExcelDataReader.getClientData()`
+- **Infra config**: `config.properties` (browser, headless, URLs only)
 - **Credentials**: `credentials.properties` (auth, DB — gitignored)
 - **Client code override**: Via system property `-Dauth.client.code=NEWCLIENT` or credentials.properties
 - Priority: System property > Environment variable > properties file
@@ -148,11 +178,14 @@ Section > Field format (SoftAssert auto-appends expected/actual values):
 - `@Test(priority = N, description = "Human-readable name")` — controls order + report display
 - `dependsOnMethods` — creates hard dependency chains
 - `@DataProvider` — supplies parameterized test data
-- `@Listeners(TestListener.class)` — declared on BaseTest
+- `@Factory(dataProvider)` — creates multiple test instances from data
+- `@Listeners(TestListener.class, RetryTransformer.class)` — declared on BaseTest
 - `alwaysRun = true` — on setup/teardown to ensure cleanup
+- `RetryAnalyzer` — retries failed tests once, excludes `investFlowTest`
 
 ## Reporting Integration
 - TestListener uses `description` attribute for human-readable test names in ExtentReport
+- Instance `toString()` appended for Factory tests (e.g., "Login | MultiClientTest[REX1324-ME]")
 - `formatExceptionForReport()` converts raw Selenium exceptions to readable messages
 - Screenshots captured automatically on failure via `UtilsMethod.captureScreenshot()`
 - Excel logging via `ExcelLogger.log()` on every test completion
@@ -171,7 +204,9 @@ Section > Field format (SoftAssert auto-appends expected/actual values):
 - Try-with-resources for all Connection/Statement/ResultSet usage
 - `PreparedStatement` for parameterized queries (prevents SQL injection)
 - `cleanClientData()` — calls stored procedure `USP_Delete_ClientData_UAT` with dynamic client/product code
-- `isSubscriptionDataPresent()` — verifies investment with `RTRIM` for CHAR column padding
+- `cleanClientData(clientCode, productCode)` — overloaded for multi-client cleanup
+- `isSubscriptionDataPresent(amount)` — verifies investment with RTRIM for CHAR column padding
+- `isSubscriptionDataPresent(amount, clientCode, productCode)` — overloaded for multi-client verification
 - DB validation used in test assertions (verify subscription after investment)
 
 ## File/Directory Conventions

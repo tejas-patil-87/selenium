@@ -37,6 +37,9 @@ mvn clean test
 # Run specific TestNG suite
 mvn test -DsuiteXmlFile=testng.xml
 
+# Run multi-client tests
+mvn test -DsuiteXmlFile=testng-multi.xml
+
 # Generate Allure report
 allure serve allure-results
 
@@ -45,29 +48,37 @@ mvn test -Dtest=NewInvestment
 
 # Override client code at runtime
 mvn test -Dauth.client.code=RFIK0037
+
+# Run in headless mode
+mvn test -Dbrowser.headless=true
 ```
 
 ## Browser Support
 - Chrome (default, configured in config.properties) — auto-detects installed version
 - Firefox
 - Edge
+- All browsers support headless mode via `browser.headless=true`
 
 ## Database
 - Microsoft SQL Server (MSSQL)
 - JDBC connection with encrypt + trustServerCertificate options
-- Stored Procedure: `USP_Delete_ClientData_UAT` for test data cleanup
+- Stored Procedure: `USP_Delete_ClientData_UAT` for test data cleanup (accepts dynamic client/product code)
 
 ## IDE
 - Eclipse (based on .classpath, .project, .settings files)
 
 ## Reporting Outputs
-- `reports/extent-report.html` — ExtentReports HTML (human-readable test names via description)
+- `reports/extent-report.html` — ExtentReports HTML (human-readable test names via description, instance-aware for Factory)
 - `allure-results/` — Allure JSON results
 - `logs/ExecutionLogs.xlsx` — Excel execution log
 - `reports/screenshots/` — Failure screenshots
 - `screenshotzip/` — Archived screenshot ZIPs
 
 ## Configuration Files
-- `src/main/resources/config.properties` — Browser, URLs (infra only)
+- `src/main/resources/config.properties` — Browser, headless flag, URLs (infra only)
 - `src/main/resources/credentials.properties` — Auth + DB credentials (gitignored)
-- `src/main/resources/testdata.xlsx` — All test data (product info, expected values, error messages)
+- `src/main/resources/testdata.xlsx` — Sheet "TestData": key-value pairs | Sheet "Clients": multi-client data
+
+## Git Repositories
+- TFS (office): `https://motfs.motilaloswal.com/tfs/MOIAP/_git/IMPAutomationTesting`
+- GitHub (personal): `https://github.com/tejas-patil-87/selenium.git`
