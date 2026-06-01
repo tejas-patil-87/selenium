@@ -20,6 +20,7 @@ public class BaseTest {
 	public void cleanOldScreenshots() {
 		UtilsMethod.cleanScreenshotDirectory();
 		UtilsMethod.deleteAllZipFiles();
+		UtilsMethod.cleanLogFiles();
 		try {
 			DBUtils.cleanOtpData();
 			DBUtils.cleanClientData();

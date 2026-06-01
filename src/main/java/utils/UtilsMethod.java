@@ -123,6 +123,19 @@ public class UtilsMethod {
 		log.info("All zip files cleaned");
 	}
 
+	public static void cleanLogFiles() {
+		File logDir = new File(FrameworkConstants.LOG_DIR);
+		if (!logDir.exists() || logDir.listFiles() == null) {
+			return;
+		}
+		for (File file : logDir.listFiles()) {
+			if (file.isFile()) {
+				file.delete();
+			}
+		}
+		log.info("Log directory cleaned");
+	}
+
 	public static void fillOTP(List<WebElement> otpFields, String value) {
 		for (WebElement field : otpFields) {
 			field.clear();
