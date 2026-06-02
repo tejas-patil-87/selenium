@@ -12,6 +12,7 @@ public class ExtentManager {
 
 		if (extent == null) {
 			String reportPath = System.getProperty("user.dir") + "/reports/extent-report.html";
+			new java.io.File(System.getProperty("user.dir") + "/reports").mkdirs();
 			ExtentSparkReporter reporter = new ExtentSparkReporter(reportPath);
 			reporter.config().setReportName("IMP Test Report");
 			reporter.config().setDocumentTitle("UI Automation");

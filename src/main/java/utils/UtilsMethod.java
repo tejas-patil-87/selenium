@@ -54,19 +54,16 @@ public class UtilsMethod {
 	}
 
 	public static void cleanScreenshotDirectory() {
-		String folderPath = FrameworkConstants.SCREENSHOT_DIR;
-		File screenshotDir = new File(folderPath);
+		File screenshotDir = new File(FrameworkConstants.SCREENSHOT_DIR);
 		if (!screenshotDir.exists()) {
 			screenshotDir.mkdirs();
+			log.info("Screenshot directory created");
 			return;
 		}
 		File[] files = screenshotDir.listFiles();
-		if (files == null)
-			return;
+		if (files == null) return;
 		for (File file : files) {
-			if (file.isFile()) {
-				file.delete();
-			}
+			if (file.isFile()) file.delete();
 		}
 		log.info("Screenshot directory cleaned");
 	}
@@ -108,30 +105,31 @@ public class UtilsMethod {
 	}
 
 	public static void deleteAllZipFiles() {
-		String zipDirPath = FrameworkConstants.ZIP_DIR;
-		File dir = new File(zipDirPath);
-
-		if (!dir.exists() || dir.listFiles() == null) {
-			log.info("Zip directory not found or empty");
+		File dir = new File(FrameworkConstants.ZIP_DIR);
+		if (!dir.exists()) {
+			dir.mkdirs();
+			log.info("Zip directory created");
 			return;
 		}
-		for (File file : dir.listFiles()) {
-			if (file.isFile() && file.getName().endsWith(".zip")) {
-				file.delete();
-			}
+		File[] files = dir.listFiles();
+		if (files == null || files.length == 0) return;
+		for (File file : files) {
+			if (file.isFile() && file.getName().endsWith(".zip")) file.delete();
 		}
 		log.info("All zip files cleaned");
 	}
 
 	public static void cleanLogFiles() {
 		File logDir = new File(FrameworkConstants.LOG_DIR);
-		if (!logDir.exists() || logDir.listFiles() == null) {
+		if (!logDir.exists()) {
+			logDir.mkdirs();
+			log.info("Log directory created");
 			return;
 		}
-		for (File file : logDir.listFiles()) {
-			if (file.isFile()) {
-				file.delete();
-			}
+		File[] files = logDir.listFiles();
+		if (files == null || files.length == 0) return;
+		for (File file : files) {
+			if (file.isFile()) file.delete();
 		}
 		log.info("Log directory cleaned");
 	}
