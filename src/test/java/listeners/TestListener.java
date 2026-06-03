@@ -165,6 +165,7 @@ public class TestListener implements ITestListener {
 				.anyMatch(passed -> passed.getMethod().equals(result.getMethod())));
 
 		long suiteEndTime = System.currentTimeMillis();
+		ExecutionSummary.endTime = suiteEndTime;
 		long totalDuration = suiteEndTime - suiteStartTime;
 		String totalTat = formatDuration(totalDuration);
 		ExtentTest summary = extent.createTest("📊 Execution Summary");

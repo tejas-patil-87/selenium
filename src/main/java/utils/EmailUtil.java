@@ -19,9 +19,9 @@ public final class EmailUtil {
 
 	public static void sendExecutionReportEmail(String htmlBody) {
 
-		final String fromEmail = "yourmail@gmail.com";
-		final String password = "your_app_password";
-		final String toEmail = "receiver@gmail.com";
+		final String fromEmail = ConfigReader.get("email.from");
+		final String password = ConfigReader.get("email.password");
+		final String toEmail = ConfigReader.get("email.to");
 
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", "true");
@@ -39,24 +39,21 @@ public final class EmailUtil {
 			Message message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(fromEmail));
 			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-			message.setSubject("Automation Test Execution Report");
+			message.setSubject("Automation Test Execution Report - " + new SimpleDateFormat("dd-MM-yyyy").format(new Date()));
 
-			// 🔹 HTML Body
 			MimeBodyPart bodyPart = new MimeBodyPart();
 			bodyPart.setContent(htmlBody, "text/html; charset=UTF-8");
 
 			Multipart multipart = new MimeMultipart();
 			multipart.addBodyPart(bodyPart);
 
-			// 🔹 Attachments
-			attachFile(multipart, FrameworkConstants.REPORT_DIR);
+			attachFile(multipart, FrameworkConstants.REPORT_DIR + "extent-report.html");
 			attachFile(multipart, FrameworkConstants.ZIP_DIR);
-			attachFile(multipart, FrameworkConstants.LOG_FILE_PATH);
 
 			message.setContent(multipart);
 			Transport.send(message);
 
-			log.info("Execution report email sent successfully");
+			log.info("Execution report email sent successfully to {}", toEmail);
 
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to send email", e);

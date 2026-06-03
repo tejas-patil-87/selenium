@@ -30,27 +30,6 @@ public class DBUtils {
 		}
 	}
 
-	public static String getSingleValue(String query, String columnName) {
-		try (Connection conn = getConnection();
-				Statement stmt = conn.createStatement();
-				ResultSet rs = stmt.executeQuery(query)) {
-			if (rs.next()) {
-				return rs.getString(columnName);
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException("Query execution failed", e);
-		}
-		return null;
-	}
-
-	public static int executeUpdate(String query) {
-		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-			return stmt.executeUpdate(query);
-		} catch (SQLException e) {
-			throw new RuntimeException("DB update failed", e);
-		}
-	}
-
 	public static void cleanOtpData() {
 		String userId = ConfigReader.get("auth.user.id");
 		String clientCode = ConfigReader.get("auth.client.code");

@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import base.BaseTest;
+import listeners.TestListener;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -39,6 +40,7 @@ public class InvestmentNegativeTest extends BaseTest {
 	@Severity(SeverityLevel.CRITICAL)
 	@Test(priority = 1, description = "Login to IMP Application")
 	public void loginTest() {
+		TestListener.logStep("Entering advisor credentials");
 		loginPage.loginToApplication();
 	}
 
@@ -55,15 +57,19 @@ public class InvestmentNegativeTest extends BaseTest {
 		Assert.assertTrue(tabOpened, "Navigation failed | Expected: Page title = '" + expectedTitle
 				+ "' | Actual: User stayed on previous page");
 
+		TestListener.logStep("Closing popup if present");
 		productPage.closePopupIfPresent();
+		TestListener.logStep("Clicking New Launches tab");
 		productPage.clickProductTab("New Launches");
 
+		TestListener.logStep("Verifying product list");
 		List<String> titles = productPage.getProductTitles();
 		Assert.assertFalse(titles.isEmpty(),
 				"Product verification failed | Expected: Product list should be displayed | Actual: No products were found");
 		Assert.assertTrue(titles.contains(productName), "Product verification failed | Expected product: '"
 				+ productName + "' | Actual products shown: " + titles);
 
+		TestListener.logStep("Verifying product card details for: " + productName);
 		String[] cardDetails = productPage.getProductCardDetails(productName);
 		Assert.assertEquals(cardDetails[0], expectedMinInvestment,
 				"Product card validation failed | Field: Min Investment | Product: '" + productName + "' | Expected: '"
@@ -72,8 +78,9 @@ public class InvestmentNegativeTest extends BaseTest {
 				"Product card validation failed | Field: Horizon | Product: '" + productName + "' | Expected: '"
 						+ expectedHorizon + "' | Actual: '" + cardDetails[1] + "'");
 
+		TestListener.logStep("Clicking Invest Now for: " + productName);
 		productPage.clickInvestNowByProductTitle(productName);
-
+		TestListener.logStep("Fetching product details");
 		ProductDetails actual = productPage.fetchProductDetails();
 		SoftAssert sa = new SoftAssert();
 		sa.assertEquals(actual.getCurrentValue(), ExcelDataReader.get("product.current.value"),
@@ -99,6 +106,7 @@ public class InvestmentNegativeTest extends BaseTest {
 						+ ExcelDataReader.get("product.no.of.stocks") + "' | Actual: '" + actual.getNoOfStocks() + "'");
 		sa.assertAll();
 
+		TestListener.logStep("Clicking Invest Lumpsum");
 		productPage.clickInvestLumpsum();
 	}
 
@@ -115,8 +123,10 @@ public class InvestmentNegativeTest extends BaseTest {
 	@Severity(SeverityLevel.NORMAL)
 	@Test(priority = 3, dependsOnMethods = "productFlowTest", dataProvider = "invalidInvestmentAmounts", groups = "negative", description = "Verify Invalid Investment Amount Validations")
 	public void verifyInvestmentAmountValidations(String amount, String expectedError) {
+		TestListener.logStep("Entering invalid amount: " + amount);
 		investmentPage.enterInvestmentAmount(amount);
 		investmentPage.proceedFromInvestmentAmountPopup();
+		TestListener.logStep("Verifying error toast for amount: " + amount);
 		Assert.assertTrue(investmentPage.isErrorToastVisible(),
 				"Error toast did not appear for amount: " + amount);
 		String actualError = investmentPage.getErrorToastText();
@@ -131,6 +141,7 @@ public class InvestmentNegativeTest extends BaseTest {
 		String baseAmount = ExcelDataReader.get("product.min.investment");
 		int baseAmountInt = UtilsMethod.parseAmount(baseAmount);
 
+		TestListener.logStep("Verifying investment amount buttons");
 		List<Integer> actualAmounts = investmentPage.getAmountButtonValues();
 		for (int i = 0; i < actualAmounts.size(); i++) {
 			int multiplier = i + 1;
@@ -140,9 +151,11 @@ public class InvestmentNegativeTest extends BaseTest {
 							+ expectedAmount + " | Actual: ₹" + actualAmounts.get(i));
 		}
 
+		TestListener.logStep("Selecting 2x investment amount");
 		investmentPage.selectAmountAndGetExpectedAmount(2, baseAmount);
 		investmentPage.proceedFromInvestmentAmountPopup();
 
+		TestListener.logStep("Verifying activation model");
 		SoftAssert sa = new SoftAssert();
 		sa.assertTrue(investmentPage.isActivationModelVisible(),
 				"Activation Model visibility check failed | Expected: visible | Actual: Not visible");
@@ -167,8 +180,10 @@ public class InvestmentNegativeTest extends BaseTest {
 	@Severity(SeverityLevel.MINOR)
 	@Test(priority = 5, dataProvider = "invalidInvestmentAmounts", dependsOnMethods = "investFlowTest", description = "Verify Edit Investment Amount Validations")
 	public void negativeEditPopup(String amount, String expectedError) {
+		TestListener.logStep("Entering invalid edit amount: " + amount);
 		investmentPage.enterEditInvestmentAmount(amount);
 		investmentPage.clickConfirmInvestmentInvestNow();
+		TestListener.logStep("Verifying error toast for edit amount: " + amount);
 		Assert.assertTrue(investmentPage.isEditErrorToastVisible(),
 				"Error toast did not appear for edit amount: " + amount);
 		String actualError = investmentPage.getEditErrorToastText();
