@@ -7,6 +7,11 @@ import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 import base.BaseTest;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import pages.InvestmentPage;
 import pages.LoginPage;
 import pages.ProductPage;
@@ -17,6 +22,8 @@ import utils.UtilsMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Epic("Investment Management Platform")
+@Feature("Multi-Client Investment")
 public class MultiClientInvestmentTest extends BaseTest {
 	private static final Logger log = LoggerFactory.getLogger(MultiClientInvestmentTest.class);
 
@@ -63,12 +70,16 @@ public class MultiClientInvestmentTest extends BaseTest {
 		investmentPage = new InvestmentPage(driver);
 	}
 
+	@Story("Advisor Login")
+	@Severity(SeverityLevel.CRITICAL)
 	@Test(priority = 1, description = "Login to IMP Application")
 	public void loginTest() {
 		loginPage.loginToApplication(advisorId, advisorPassword, clientCode);
 		log.info("Logged in with Advisor={}, Client={}", advisorId, clientCode);
 	}
 
+	@Story("Lumpsum Investment")
+	@Severity(SeverityLevel.CRITICAL)
 	@Test(priority = 2, dependsOnMethods = "loginTest", description = "Navigate to Product & Invest")
 	public void investTest() {
 		String expectedTitle = ExcelDataReader.get("app.page.title");

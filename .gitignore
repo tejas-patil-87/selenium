@@ -9,6 +9,9 @@
 /test-output/
 /allure-results/
 
+# Allure CLI installation
+/.allure/
+
 # IDE files
 .settings/
 .classpath

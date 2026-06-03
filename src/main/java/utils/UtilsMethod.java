@@ -134,6 +134,20 @@ public class UtilsMethod {
 		log.info("Log directory cleaned");
 	}
 
+	public static void cleanAllureResults() {
+		File allureDir = new File(System.getProperty("user.dir") + "/allure-results");
+		if (!allureDir.exists()) {
+			allureDir.mkdirs();
+			return;
+		}
+		File[] files = allureDir.listFiles();
+		if (files == null || files.length == 0) return;
+		for (File file : files) {
+			if (file.isFile()) file.delete();
+		}
+		log.info("Allure results cleaned");
+	}
+
 	public static void fillOTP(List<WebElement> otpFields, String value) {
 		for (WebElement field : otpFields) {
 			field.clear();

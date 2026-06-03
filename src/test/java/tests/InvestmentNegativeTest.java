@@ -9,6 +9,11 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import base.BaseTest;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import pages.InvestmentPage;
 import pages.LoginPage;
 import pages.ProductPage;
@@ -16,6 +21,8 @@ import pages.ProductPage.ProductDetails;
 import utils.ExcelDataReader;
 import utils.UtilsMethod;
 
+@Epic("Investment Management Platform")
+@Feature("Investment Validations")
 public class InvestmentNegativeTest extends BaseTest {
 	private LoginPage loginPage;
 	protected ProductPage productPage;
@@ -28,11 +35,15 @@ public class InvestmentNegativeTest extends BaseTest {
 		investmentPage = new InvestmentPage(driver);
 	}
 
+	@Story("Advisor Login")
+	@Severity(SeverityLevel.CRITICAL)
 	@Test(priority = 1, description = "Login to IMP Application")
 	public void loginTest() {
 		loginPage.loginToApplication();
 	}
 
+	@Story("Product Verification")
+	@Severity(SeverityLevel.NORMAL)
 	@Test(priority = 2, dependsOnMethods = "loginTest", description = "Verify Product Details & Card Information")
 	public void productFlowTest() {
 		String expectedTitle = ExcelDataReader.get("app.page.title");
@@ -100,6 +111,8 @@ public class InvestmentNegativeTest extends BaseTest {
 				{ ExcelDataReader.get("invalid.amount.zero"), ExcelDataReader.get("error.min.amount") } };
 	}
 
+	@Story("Invalid Amount Validation")
+	@Severity(SeverityLevel.NORMAL)
 	@Test(priority = 3, dependsOnMethods = "productFlowTest", dataProvider = "invalidInvestmentAmounts", groups = "negative", description = "Verify Invalid Investment Amount Validations")
 	public void verifyInvestmentAmountValidations(String amount, String expectedError) {
 		investmentPage.enterInvestmentAmount(amount);
@@ -111,6 +124,8 @@ public class InvestmentNegativeTest extends BaseTest {
 				+ " | Expected: '" + expectedError + "' | Actual: '" + actualError + "'");
 	}
 
+	@Story("Investment Flow")
+	@Severity(SeverityLevel.NORMAL)
 	@Test(priority = 4, dependsOnMethods = "verifyInvestmentAmountValidations", description = "Verify Investment Flow with Activation Model")
 	public void investFlowTest() {
 		String baseAmount = ExcelDataReader.get("product.min.investment");
@@ -148,6 +163,8 @@ public class InvestmentNegativeTest extends BaseTest {
 		investmentPage.clickEditIcon();
 	}
 
+	@Story("Edit Amount Validation")
+	@Severity(SeverityLevel.MINOR)
 	@Test(priority = 5, dataProvider = "invalidInvestmentAmounts", dependsOnMethods = "investFlowTest", description = "Verify Edit Investment Amount Validations")
 	public void negativeEditPopup(String amount, String expectedError) {
 		investmentPage.enterEditInvestmentAmount(amount);

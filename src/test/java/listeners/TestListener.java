@@ -3,7 +3,9 @@ package listeners;
 import org.testng.*;
 import com.aventstack.extentreports.*;
 
+import utils.ConfigReader;
 import utils.ExecutionSummary;
+import utils.ExcelDataReader;
 import utils.ExtentManager;
 import utils.UtilsMethod;
 
@@ -11,6 +13,13 @@ public class TestListener implements ITestListener {
 	private static long suiteStartTime;
 	private static final ThreadLocal<ExtentTest> testThread = new ThreadLocal<>();
 	private ExtentReports extent = ExtentManager.getExtent();
+
+	public static void logStep(String message) {
+		ExtentTest test = testThread.get();
+		if (test != null) {
+			test.info("📋 " + message);
+		}
+	}
 
 	@Override
 	public void onStart(ITestContext context) {
@@ -25,12 +34,21 @@ public class TestListener implements ITestListener {
 		String testName = result.getMethod().getDescription() != null
 				? result.getMethod().getDescription()
 				: result.getMethod().getMethodName();
-		Object instance = result.getInstance();
-		String instanceInfo = instance.toString();
+		String instanceInfo = result.getInstance().toString();
 		if (!instanceInfo.contains("@")) {
 			testName = testName + " | " + instanceInfo;
 		}
 		ExtentTest test = extent.createTest(testName);
+		test.assignCategory(result.getTestClass().getRealClass().getSimpleName());
+		if (!instanceInfo.contains("@")) {
+			String info = instanceInfo.replaceAll(".*\\[", "").replace("]", "");
+			String[] parts = info.split("-");
+			if (parts.length >= 2) {
+				test.info("👤 Client: " + parts[0] + " | 📦 Product: " + parts[1]);
+			}
+		} else {
+			test.info("👤 Client: " + ConfigReader.get("auth.client.code") + " | 📦 Product: " + ExcelDataReader.get("product.new"));
+		}
 		testThread.set(test);
 	}
 
@@ -150,10 +168,24 @@ public class TestListener implements ITestListener {
 		long totalDuration = suiteEndTime - suiteStartTime;
 		String totalTat = formatDuration(totalDuration);
 		ExtentTest summary = extent.createTest("📊 Execution Summary");
+		summary.info("📅 Start Time: " + new java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(new java.util.Date(ExecutionSummary.startTime)));
+		summary.info("📅 End Time: " + new java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(new java.util.Date(suiteEndTime)));
 		summary.info("⏱ Total Execution Time (TAT): " + totalTat);
 		summary.info("✅ Passed: " + ExecutionSummary.passed.get());
 		summary.info("❌ Failed: " + ExecutionSummary.failed.get());
 		summary.info("⚠️ Skipped: " + ExecutionSummary.skipped.get());
+		int total = ExecutionSummary.passed.get() + ExecutionSummary.failed.get() + ExecutionSummary.skipped.get();
+		int passRate = total > 0 ? (ExecutionSummary.passed.get() * 100) / total : 0;
+		summary.info("📈 Pass Rate: " + passRate + "%");
+		summary.info("🌐 Environment: " + (ConfigReader.get("app.base.url").contains("uat") ? "UAT" : "PROD"));
+		summary.info("🔗 App URL: " + ConfigReader.get("app.base.url"));
+		summary.info("👤 Executed By: " + System.getProperty("user.name"));
+		if (!ExecutionSummary.failedTests.isEmpty()) {
+			summary.info("❌ Failed Tests:");
+			for (ExecutionSummary.FailedTest ft : ExecutionSummary.failedTests) {
+				summary.info("&nbsp;&nbsp;&nbsp;→ " + ft.testCase + " | " + ft.reason);
+			}
+		}
 		summary.getModel().setStatus(Status.INFO);
 
 		extent.flush();
@@ -165,11 +197,7 @@ public class TestListener implements ITestListener {
 		String reason = result.getThrowable() != null ? result.getThrowable().getMessage()
 				: "Skipped due to dependency failure";
 		testThread.get().skip(reason);
-		long startTime = (long) result.getAttribute("startTime");
-		long duration = System.currentTimeMillis() - startTime;
-
 		ExecutionSummary.skipped.incrementAndGet();
-
 	}
 
 }
