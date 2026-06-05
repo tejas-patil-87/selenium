@@ -5,7 +5,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,17 +33,21 @@ public class DBUtils {
 		String userId = ConfigReader.get("auth.user.id");
 		String clientCode = ConfigReader.get("auth.client.code");
 		String productCode = ExcelDataReader.get("product.code");
-		String deleteAdvisorOtp = "DELETE FROM MOSLAdvisioryAdminDB..tbl_OTPLogForLoginAdvisor WHERE UserId=" + userId;
-		String deleteClientOtp = "DELETE FROM MOSLAdvisioryAdminDB..tbl_OTPLogForLoginClient " + "WHERE UserId="
-				+ userId + " AND ClientCode='" + clientCode + "'";
-		String deleteInvestmentOtp = "DELETE FROM MOSLACEAdvisioryDB..tbl_OTPLogs WHERE ClientCode='" + clientCode
-				+ "' AND ProductCode='" + productCode + "' AND RequestType='INVESTMENT'";
-		try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-			stmt.executeUpdate(deleteAdvisorOtp);
-			stmt.executeUpdate(deleteClientOtp);
-			stmt.executeUpdate(deleteInvestmentOtp);
-			log.info("OTP data cleaned successfully for UserId={}, ClientCode={}, ProductCode={}", userId, clientCode,
-					productCode);
+		try (
+			Connection conn = getConnection();
+			PreparedStatement ps1 = conn.prepareStatement("DELETE FROM MOSLAdvisioryAdminDB..tbl_OTPLogForLoginAdvisor WHERE UserId=?");
+			PreparedStatement ps2 = conn.prepareStatement("DELETE FROM MOSLAdvisioryAdminDB..tbl_OTPLogForLoginClient WHERE UserId=? AND ClientCode=?");
+			PreparedStatement ps3 = conn.prepareStatement("DELETE FROM MOSLACEAdvisioryDB..tbl_OTPLogs WHERE ClientCode=? AND ProductCode=? AND RequestType='INVESTMENT'")
+		) {
+			ps1.setString(1, userId);
+			ps1.executeUpdate();
+			ps2.setString(1, userId);
+			ps2.setString(2, clientCode);
+			ps2.executeUpdate();
+			ps3.setString(1, clientCode);
+			ps3.setString(2, productCode);
+			ps3.executeUpdate();
+			log.info("OTP data cleaned successfully for UserId={}, ClientCode={}, ProductCode={}", userId, clientCode, productCode);
 		} catch (SQLException e) {
 			throw new RuntimeException("OTP cleanup failed", e);
 		}

@@ -1,12 +1,15 @@
 package tests;
 
+import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Factory;
+import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import base.BaseTest;
+import drivers.DriverFactory;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
@@ -24,9 +27,11 @@ import org.slf4j.LoggerFactory;
 
 @Epic("Investment Management Platform")
 @Feature("Multi-Client Investment")
-public class MultiClientInvestmentTest extends BaseTest {
+@Listeners({listeners.TestListener.class, listeners.RetryTransformer.class})
+public class MultiClientInvestmentTest {
 	private static final Logger log = LoggerFactory.getLogger(MultiClientInvestmentTest.class);
 
+	private WebDriver instanceDriver;
 	private LoginPage loginPage;
 	private ProductPage productPage;
 	private InvestmentPage investmentPage;
@@ -60,14 +65,20 @@ public class MultiClientInvestmentTest extends BaseTest {
 
 	@BeforeClass
 	public void initPages() {
+		instanceDriver = DriverFactory.createDriver();
 		try {
 			DBUtils.cleanClientData(clientCode, productCode);
 		} catch (Exception e) {
 			log.warn("Client data cleanup failed for {}/{}: {}", clientCode, productCode, e.getMessage());
 		}
-		loginPage = new LoginPage(driver);
-		productPage = new ProductPage(driver);
-		investmentPage = new InvestmentPage(driver);
+		loginPage = new LoginPage(instanceDriver);
+		productPage = new ProductPage(instanceDriver);
+		investmentPage = new InvestmentPage(instanceDriver);
+	}
+
+	@AfterClass(alwaysRun = true)
+	public void closeBrowser() {
+		DriverFactory.quitDriver(instanceDriver);
 	}
 
 	@Story("Advisor Login")
@@ -87,10 +98,8 @@ public class MultiClientInvestmentTest extends BaseTest {
 				"Tab switch failed | Client: " + clientCode);
 
 		productPage.closePopupIfPresent();
-		try { Thread.sleep(2000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 		productPage.clickProductTab(productTab);
 		productPage.clickInvestNowByProductTitle(productName);
-		try { Thread.sleep(3000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 		productPage.clickInvestLumpsum();
 
 		String expectedAmount = investmentPage.selectAmountAndGetExpectedAmount(multiplier, minInvestment);

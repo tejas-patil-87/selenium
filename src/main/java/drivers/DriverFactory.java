@@ -16,9 +16,10 @@ public class DriverFactory {
 	private static final Logger log = LoggerFactory.getLogger(DriverFactory.class);
 	private static ThreadLocal<WebDriver> tlDriver = new ThreadLocal<>();
 
-	public static void initDriver() {
+	private static WebDriver buildDriver() {
 		String browser = ConfigReader.get("browser").toLowerCase();
 		boolean headless = "true".equals(ConfigReader.get("browser.headless"));
+		WebDriver driver;
 		switch (browser) {
 		case "chrome":
 			ChromeOptions chromeOptions = new ChromeOptions();
@@ -27,14 +28,12 @@ public class DriverFactory {
 				chromeOptions.addArguments("--headless=new");
 				chromeOptions.addArguments("--window-size=1920,1080");
 			}
-			tlDriver.set(new ChromeDriver(chromeOptions));
+			driver = new ChromeDriver(chromeOptions);
 			break;
 		case "firefox":
 			FirefoxOptions firefoxOptions = new FirefoxOptions();
-			if (headless) {
-				firefoxOptions.addArguments("--headless");
-			}
-			tlDriver.set(new FirefoxDriver(firefoxOptions));
+			if (headless) firefoxOptions.addArguments("--headless");
+			driver = new FirefoxDriver(firefoxOptions);
 			break;
 		case "edge":
 			EdgeOptions edgeOptions = new EdgeOptions();
@@ -42,14 +41,21 @@ public class DriverFactory {
 				edgeOptions.addArguments("--headless=new");
 				edgeOptions.addArguments("--window-size=1920,1080");
 			}
-			tlDriver.set(new EdgeDriver(edgeOptions));
+			driver = new EdgeDriver(edgeOptions);
 			break;
 		default:
 			throw new RuntimeException("Unsupported browser: " + browser);
 		}
+		return driver;
+	}
+
+	// ThreadLocal mode — for regular tests via BaseTest
+	public static void initDriver() {
+		WebDriver driver = buildDriver();
 		String launchUrl = ConfigReader.get("app.base.url") + ConfigReader.get("app.login.path");
-		getDriver().get(launchUrl);
-		log.info("Browser [{}] launched and navigated to {}", browser, launchUrl);
+		driver.get(launchUrl);
+		tlDriver.set(driver);
+		log.info("Browser [{}] launched and navigated to {}", ConfigReader.get("browser"), launchUrl);
 	}
 
 	public static WebDriver getDriver() {
@@ -61,6 +67,22 @@ public class DriverFactory {
 			getDriver().quit();
 			tlDriver.remove();
 			log.info("Browser quit and driver removed");
+		}
+	}
+
+	// Instance mode — for Factory pattern tests (MultiClientInvestmentTest)
+	public static WebDriver createDriver() {
+		WebDriver driver = buildDriver();
+		String launchUrl = ConfigReader.get("app.base.url") + ConfigReader.get("app.login.path");
+		driver.get(launchUrl);
+		log.info("Instance browser [{}] launched and navigated to {}", ConfigReader.get("browser"), launchUrl);
+		return driver;
+	}
+
+	public static void quitDriver(WebDriver driver) {
+		if (driver != null) {
+			driver.quit();
+			log.info("Instance browser quit");
 		}
 	}
 }

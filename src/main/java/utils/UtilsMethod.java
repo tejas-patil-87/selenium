@@ -31,10 +31,10 @@ public class UtilsMethod {
 	}
 
 	public static String captureScreenshot(String testName) {
-
 		WebDriver driver = DriverFactory.getDriver();
 		if (driver == null) {
-			throw new RuntimeException("Driver is null. Cannot take screenshot.");
+			log.warn("Driver is null. Cannot take screenshot for: {}", testName);
+			return "";
 		}
 		String timestamp = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new Date());
 		String fileName = testName + "_" + timestamp + ".png";

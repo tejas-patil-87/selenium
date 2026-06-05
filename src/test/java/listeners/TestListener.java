@@ -54,7 +54,6 @@ public class TestListener implements ITestListener {
 
 	@Override
 	public void onTestFailure(ITestResult result) {
-		// Skip logging if test will be retried
 		if (result.getMethod().getRetryAnalyzerClass() != null && isRetryAvailable(result)) {
 			testThread.get().info("⟳ Test failed, retrying...");
 			return;
@@ -72,8 +71,12 @@ public class TestListener implements ITestListener {
 		} else {
 			finalMessage = cleanFailureMessage;
 		}
-		testThread.get().fail("❌ Test Failed -" + finalMessage,
-				MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
+		if (!screenshotPath.isEmpty()) {
+			testThread.get().fail("❌ Test Failed -" + finalMessage,
+					MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
+		} else {
+			testThread.get().fail("❌ Test Failed -" + finalMessage);
+		}
 		testThread.get().info("⏱ Execution Time (TAT): " + tat);
 
 		ExecutionSummary.failed.incrementAndGet();
@@ -140,7 +143,6 @@ public class TestListener implements ITestListener {
 		long minutes = millis / 60000;
 		long seconds = (millis % 60000) / 1000;
 		long ms = millis % 1000;
-
 		return minutes + " min " + seconds + " sec " + ms + " ms";
 	}
 
@@ -153,14 +155,12 @@ public class TestListener implements ITestListener {
 		String dataInfo = getTestData(result);
 		testThread.get().pass("✅ Test Passed" + dataInfo);
 		testThread.get().info("⏱ Execution Time (TAT): " + tat);
-
 		ExecutionSummary.passed.incrementAndGet();
 	}
 
 	@Override
 	public void onFinish(ITestContext context) {
-		// Remove retried tests from failed set (they'll appear as passed if retry succeeded)
-		context.getFailedTests().getAllResults().removeIf(result -> 
+		context.getFailedTests().getAllResults().removeIf(result ->
 			context.getPassedTests().getAllResults().stream()
 				.anyMatch(passed -> passed.getMethod().equals(result.getMethod())));
 
@@ -188,7 +188,6 @@ public class TestListener implements ITestListener {
 			}
 		}
 		summary.getModel().setStatus(Status.INFO);
-
 		extent.flush();
 		testThread.remove();
 	}
