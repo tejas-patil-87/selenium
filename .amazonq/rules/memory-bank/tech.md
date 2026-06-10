@@ -26,7 +26,7 @@
 | Log4j Core | 2.22.1 | Logging implementation |
 | Log4j SLF4J2 Impl | 2.22.1 | SLF4J binding |
 
-**Note:** WebDriverManager (5.7.0) is still in pom.xml but no longer used in code. Selenium 4's built-in SeleniumManager handles driver binary management automatically.
+**Note:** Selenium 4's built-in SeleniumManager handles driver binary management automatically. No external WebDriverManager needed.
 
 ## Development Commands
 
@@ -38,13 +38,13 @@ mvn clean test
 mvn test -DsuiteXmlFile=testng.xml
 
 # Run multi-client tests
-mvn test -DsuiteXmlFile=testng-multi.xml
+mvn test -DsuiteXmlFile=testng-multiclient.xml
 
 # Generate Allure report
 allure serve allure-results
 
 # Run single test class
-mvn test -Dtest=NewInvestment
+mvn test -Dtest=NewInvestmentTest
 
 # Override client code at runtime
 mvn test -Dauth.client.code=RFIK0037

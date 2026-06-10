@@ -1,6 +1,7 @@
 package utils;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicReference;
 import org.openqa.selenium.By;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 public class WaitHelper {
 	private static final Logger log = LoggerFactory.getLogger(WaitHelper.class);
-	private WebDriver driver;
+	private final WebDriver driver;
 
 	private WebDriverWait getWait(long timeoutSeconds) {
 		return new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
@@ -69,21 +70,10 @@ public class WaitHelper {
 	}
 
 	public String getText(WebElement parent, By childLocator, long timeoutSeconds) {
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
-		WebElement child = wait.until(d -> parent.findElement(childLocator));
+		WebElement child = getWait(timeoutSeconds).until(d -> parent.findElement(childLocator));
 		return child.getText().trim();
 	}
-	/* ================= STATIC WAIT (ONLY THIS IS STATIC) ================= */
 
-	public void staticWait(long timeoutSeconds) {
-		try {
-			Thread.sleep(timeoutSeconds * 1000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-	}
-
-	/* ================= Visibility/Element Enabled checks ================= */
 
 	public boolean isElementVisible(By locator, int timeoutSeconds) {
 		try {
@@ -145,28 +135,37 @@ public class WaitHelper {
 	}
 
 	public String waitForTextToNotBe(By locator, String unwantedText, int timeoutSeconds) {
+		AtomicReference<String> result = new AtomicReference<>();
 		getWait(timeoutSeconds).until(driver -> {
 			try {
 				String actual = driver.findElement(locator).getText().trim();
-				return !actual.isEmpty() && !actual.equalsIgnoreCase(unwantedText);
+				if (!actual.isEmpty() && !actual.equalsIgnoreCase(unwantedText)) {
+					result.set(actual);
+					return true;
+				}
+				return false;
 			} catch (StaleElementReferenceException e) {
 				return false;
 			}
 		});
-		return driver.findElement(locator).getText().trim();
+		return result.get();
 	}
 
 	public String waitForTextToBe(By locator, String expectedText, int timeoutSeconds) {
+		AtomicReference<String> result = new AtomicReference<>();
 		getWait(timeoutSeconds).until(driver -> {
 			try {
 				String actual = driver.findElement(locator).getText().trim();
-				return actual.equals(expectedText);
+				if (actual.equals(expectedText)) {
+					result.set(actual);
+					return true;
+				}
+				return false;
 			} catch (StaleElementReferenceException e) {
 				return false;
 			}
 		});
-
-		return driver.findElement(locator).getText().trim();
+		return result.get();
 	}
 
 }

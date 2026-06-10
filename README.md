@@ -59,6 +59,7 @@ git clone https://motfs.motilaloswal.com/tfs/MOIAP/_git/IMPAutomationTesting
 auth.user.id=<your_advisor_id>
 auth.user.password=<your_advisor_password>
 auth.client.code=<your_client_code>
+# UAT environment accepts '9' as a static bypass OTP for automation
 auth.otp=9
 db.server=<db_server_ip>
 db.port=<db_port>
@@ -84,9 +85,10 @@ No manual setup needed — all directories are created automatically by the fram
 | Directory | Created By | Behaviour |
 |-----------|-----------|----------|
 | `reports/` | `ExtentManager` | Created automatically when first test starts |
-| `reports/screenshots/` | `UtilsMethod.cleanScreenshotDirectory()` | Created if missing, cleaned before each run |
-| `screenshotzip/` | `UtilsMethod.deleteAllZipFiles()` | Created if missing, old ZIPs cleaned before each run |
-| `logs/` | `UtilsMethod.cleanLogFiles()` | Created if missing, old logs cleaned before each run |
+| `reports/screenshots/` | `TestUtils.cleanScreenshotDirectory()` | Created if missing, cleaned before each run |
+| `screenshotzip/` | `TestUtils.deleteAllZipFiles()` | Created if missing, old ZIPs cleaned before each run |
+| `logs/` | `TestUtils.cleanLogFiles()` | Created if missing, old logs cleaned before each run |
+| `allure-results/` | `TestUtils.cleanAllureResults()` | Cleaned before each run for fresh Allure report |
 
 ---
 
@@ -94,13 +96,13 @@ No manual setup needed — all directories are created automatically by the fram
 
 ### Single Client Investment Test (New Investment)
 - Right-click `testng.xml` → **Run As → TestNG Suite**
-- Or right-click `NewInvestment.java` → **Run As → TestNG Test**
+- Or right-click `NewInvestmentTest.java` → **Run As → TestNG Test**
+
+### Investment Negative Validations
+- Right-click `InvestmentNegativeTest.java` → **Run As → TestNG Test**
 
 ### Multi-Client Investment Test
-- Right-click `testng-multi.xml` → **Run As → TestNG Suite**
-
-### Negative Tests
-- Right-click `InvestmentNegativeTest.java` → **Run As → TestNG Test**
+- Right-click `testng-multiclient.xml` → **Run As → TestNG Suite**
 
 ### Switch Client Code Without Code Change
 ```bash
@@ -119,11 +121,13 @@ No manual setup needed — all directories are created automatically by the fram
 
 | Report | Location |
 |--------|----------|
-| ExtentReport | `reports/extent-report.html` |
+| ExtentReport | `reports/IMP-Automation-Report_DD-MM-YYYY_HH-mm-ss.html` |
 | Allure Results | `allure-results/` |
 | Screenshots | `reports/screenshots/` |
 | ZIP Archives | `screenshotzip/` |
 | Logs | `logs/automation.log` |
+
+> Each run generates a uniquely timestamped ExtentReport. Old reports are cleaned before each run.
 
 ### View Allure Report
 ```bash
@@ -138,18 +142,19 @@ allure serve allure-results
 src/main/java/
   ├── drivers/        # DriverFactory (ThreadLocal WebDriver)
   ├── pages/          # Page Objects (LoginPage, ProductPage, InvestmentPage)
-  └── utils/          # Utilities (ConfigReader, DBUtils, ExcelDataReader, WaitHelper)
+  └── utils/          # Utilities (ConfigReader, DBUtils, ExcelDataReader, TestUtils, WaitHelper)
 
 src/test/java/
-  ├── base/           # BaseTest (setup/teardown)
+  ├── base/           # BaseTest (suite setup/teardown), BaseInvestmentTest (shared login + product flow)
   ├── listeners/      # TestListener, RetryAnalyzer, RetryTransformer
-  └── tests/          # Test classes (NewInvestment, InvestmentNegativeTest, MultiClientInvestmentTest)
+  └── tests/          # Test classes (NewInvestmentTest, InvestmentNegativeTest, MultiClientInvestmentTest)
 
 src/main/resources/
-  ├── config.properties              # Browser, URLs (safe to commit)
+  ├── config.properties              # Browser, URLs, timeouts (safe to commit)
   ├── credentials.properties         # Auth + DB (GITIGNORED - never commit)
   ├── credentials.properties.template # Template for credentials setup
   ├── testdata.xlsx                  # Test data (safe to commit)
+  ├── email-template.html            # Email HTML template
   └── log4j2.xml                     # Logging config
 ```
 
@@ -173,9 +178,11 @@ No code changes needed.
 |-------|-------|-----|
 | `credentials.properties not found` | File missing | Copy template and fill values |
 | `Database connection failed` | Not on VPN | Connect to Motilal Oswal network |
-| `No such element: IAP/IMP button` | Slow page load | Increase timeout in LoginPage |
+| `UAT unreachable — HTTP 0` | UAT is down | Wait for UAT to be available |
+| `No such element` on login buttons | UAT UI was updated | Update locators in `LoginPage.java` to match new HTML |
 | `testdata.xlsx not found` | File missing from classpath | Check `src/main/resources/` |
 | `Chrome not found` | Chrome not installed | Install Chrome browser |
+| `Cannot find class: tests.NewInvestment` | Eclipse cached old run config | Delete old run config → right-click `testng.xml` → Run As → TestNG Suite |
 | Red errors in Eclipse after import | Maven dependencies not downloaded | Right-click project → Maven → Update Project → Force Update |
 | No "Run As → TestNG Suite" option | TestNG plugin not installed | Help → Eclipse Marketplace → install TestNG for Eclipse |
 | Compilation errors after import | Wrong Java version | Configure JDK 17 in Eclipse Installed JREs |

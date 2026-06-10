@@ -11,8 +11,10 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import io.qameta.allure.Step;
 import utils.ConfigReader;
-import utils.UtilsMethod;
+import utils.FrameworkConstants;
+import utils.TestUtils;
 
 public class InvestmentPage extends BasePage {
 
@@ -21,11 +23,12 @@ public class InvestmentPage extends BasePage {
 		PageFactory.initElements(driver, this);
 	}
 
-	@FindBy(xpath = "//button[normalize-space()='Next']")
+	@FindBy(xpath = "//div[contains(@class,'ria-onb-investbox')]/following-sibling::div[contains(@class,'action-btns-group')]//button[normalize-space()='Next']")
 	private WebElement investmentAmountNextBtn;
 
+	@Step("Proceed from investment amount popup")
 	public void proceedFromInvestmentAmountPopup() {
-		waitHelper.click(investmentAmountNextBtn, 10);
+		waitHelper.click(investmentAmountNextBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	private By amountButtonBy(int index) {
@@ -34,36 +37,39 @@ public class InvestmentPage extends BasePage {
 
 	public List<Integer> getAmountButtonValues() {
 		List<Integer> amounts = new ArrayList<>();
-		for (int i = 1; i <= 3; i++) {
-			String text = waitHelper.waitForTextToNotBe(amountButtonBy(i), "NaN", 10);
-			amounts.add(UtilsMethod.parseAmount(text));
+		amounts.add(TestUtils.parseAmount(waitHelper.waitForTextToNotBe(amountButtonBy(1), "NaN", FrameworkConstants.DEFAULT_TIMEOUT)));
+		for (int i = 2; i <= 3; i++) {
+			String text = waitHelper.waitForTextToNotBe(amountButtonBy(i), "NaN", FrameworkConstants.SHORT_TIMEOUT);
+			amounts.add(TestUtils.parseAmount(text));
 		}
 		return amounts;
 	}
 
 	private void clickAmountButton(int index) {
-		waitHelper.click(amountButtonBy(index), 10);
+		waitHelper.click(amountButtonBy(index), FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
+	@Step("Select {multiplier}x investment amount")
 	public String selectAmountAndGetExpectedAmount(int multiplier, String baseAmountText) {
-		int baseAmount = UtilsMethod.parseAmount(baseAmountText);
+		int baseAmount = TestUtils.parseAmount(baseAmountText);
 		int expectedAmount = baseAmount * multiplier;
 		clickAmountButton(multiplier);
-		return UtilsMethod.formatToIndianCurrency(expectedAmount);
+		return TestUtils.formatToIndianCurrency(expectedAmount);
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-innerbox')]//h4[contains(text(),'Activation')]")
 	private WebElement activationModel;
 
 	public boolean isActivationModelVisible() {
-		return waitHelper.isElementVisible(activationModel, 10);
+		return waitHelper.isElementVisible(activationModel, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	@FindBy(xpath = "//a[contains(@class,'cta-fixed-bottom') and normalize-space()='Next']")
-	private WebElement activationModelNextButton;
+	private WebElement activationModelNextBtn;
 
+	@Step("Click Activation Model Next button")
 	public void clickActivationModelNextButton() {
-		waitHelper.click(activationModelNextButton, 10);
+		waitHelper.click(activationModelNextBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'ria-dlist')]//div[contains(@class,'list-icon')]")
@@ -71,9 +77,9 @@ public class InvestmentPage extends BasePage {
 
 	public int getListIconCount() {
 		try {
-			waitHelper.waitForVisibility(listIcons.get(0), 2);
+			waitHelper.waitForVisibility(listIcons.get(0), FrameworkConstants.SHORT_TIMEOUT);
 			return listIcons.size();
-		} catch (Exception e) {
+		} catch (TimeoutException | IndexOutOfBoundsException e) {
 			return 0;
 		}
 	}
@@ -84,19 +90,19 @@ public class InvestmentPage extends BasePage {
 	@FindBy(xpath = "//div[contains(@class,'dblock')]//p[contains(text(),'Standard Brokerage')]")
 	private WebElement standardBrokerage;
 
-	@FindBy(xpath = "//div[contains(@class,'ria-action-box')]//a[contains(@class,'cta-fixed-bottom')]")
-	private WebElement nextCtaButton;
+	@FindBy(xpath = "//div[contains(@class,'inner-modal-footer')]//div[contains(@class,'ria-action-box')]//a[normalize-space()='Next']")
+	private WebElement nextCtaBtn;
 
 	public String getPortfolioDescription() {
-		return waitHelper.getText(portfolioDescription, 2);
+		return waitHelper.getText(portfolioDescription, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	public String getStandardBrokerage() {
-		return waitHelper.getText(standardBrokerage, 2);
+		return waitHelper.getText(standardBrokerage, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	public String getNextCtaText() {
-		return waitHelper.getText(nextCtaButton, 2);
+		return waitHelper.getText(nextCtaBtn, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	private By valueByLabel(String labelText) {
@@ -105,60 +111,59 @@ public class InvestmentPage extends BasePage {
 	}
 
 	public String getSubscriptionAmount() {
-		return waitHelper.getText(valueByLabel("Subscription amount"), 5);
+		return waitHelper.getText(valueByLabel("Subscription amount"), FrameworkConstants.MEDIUM_TIMEOUT);
 	}
 
 	public String getGstAmount() {
-		return waitHelper.getText(valueByLabel("GST (18%)"), 5);
+		return waitHelper.getText(valueByLabel("GST (18%)"), FrameworkConstants.MEDIUM_TIMEOUT);
 	}
 
 	public String getRequiredMargin() {
-		return waitHelper.getText(valueByLabel("Required Margin"), 5);
+		return waitHelper.getText(valueByLabel("Required Margin"), FrameworkConstants.MEDIUM_TIMEOUT);
 	}
 
 	public String getAvailableAmount() {
-		return waitHelper.getText(valueByLabel("Available"), 5);
+		return waitHelper.getText(valueByLabel("Available"), FrameworkConstants.MEDIUM_TIMEOUT);
 	}
 
 	private static final By INVESTMENT_AMOUNT_BY = By.xpath("//p[normalize-space()='Investment amount']"
 			+ "/following-sibling::div//div[contains(@class,'invest-bold')]");
 
 	public String getInvestmentAmount(String expectedAmount) {
-		return waitHelper.waitForTextToBe(INVESTMENT_AMOUNT_BY, expectedAmount, 10);
+		return waitHelper.waitForTextToBe(INVESTMENT_AMOUNT_BY, expectedAmount, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	@FindBy(xpath = "//button[normalize-space()='Invest Now']")
 	private WebElement investNowBtn;
 
 	public boolean isInvestNowVisible() {
-		return waitHelper.isElementVisible(investNowBtn, 5);
+		return waitHelper.isElementVisible(investNowBtn, FrameworkConstants.MEDIUM_TIMEOUT);
 	}
 
-	public void clickConfirmInvestmentInvestNow() {
-		waitHelper.click(investNowBtn, 5);
+	@Step("Click Invest Now")
+	public void clickInvestNow() {
+		waitHelper.click(investNowBtn, FrameworkConstants.MEDIUM_TIMEOUT);
 	}
 
-	@FindBy(xpath = "//a[normalize-space()='Verify OTP' and contains(@class,'cta-orange')]")
+	@FindBy(xpath = "//div[contains(@class,'ria-otp-main')]/following-sibling::div//a[normalize-space()='Verify OTP']")
 	private WebElement verifyOtpBtn;
-
-	public void clickVerifyOtp() {
-		waitHelper.click(verifyOtpBtn, 3);
-	}
 
 	private static final By OTP_INPUTS_BY = By.cssSelector("div.otp-inner-boxes input");
 
 	@FindBy(css = "div.otp-inner-boxes input")
 	private List<WebElement> otpInputs;
 
+	@Step("Fill investment OTP")
 	public void fillInvestmentOtp() {
-		waitHelper.waitForVisibility(OTP_INPUTS_BY, 20);
-		UtilsMethod.fillOTP(otpInputs, ConfigReader.get("auth.otp"));
+		waitHelper.waitForVisibility(OTP_INPUTS_BY, FrameworkConstants.LONG_TIMEOUT);
+		TestUtils.fillOTP(otpInputs, ConfigReader.get("auth.otp"));
 	}
 
+	@Step("Submit investment OTP")
 	public boolean submitInvestmentOtp() {
 		try {
-			waitHelper.click(verifyOtpBtn, 25);
-			waitHelper.staticWait(2);
+			waitHelper.click(verifyOtpBtn, FrameworkConstants.LONG_TIMEOUT);
+			waitHelper.waitForToastToDisappearSafely(verifyOtpBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 			return true;
 		} catch (TimeoutException e) {
 			return false;
@@ -168,9 +173,10 @@ public class InvestmentPage extends BasePage {
 	@FindBy(xpath = "//a[normalize-space()='No, not yet' and contains(@class,'cta-light')]")
 	private WebElement dpAmcDismissBtn;
 
+	@Step("Dismiss DP AMC popup if present")
 	public void dismissDpAmcPopupIfPresent() {
-		if (waitHelper.isElementVisible(dpAmcDismissBtn, 10)) {
-			waitHelper.click(dpAmcDismissBtn, 5);
+		if (waitHelper.isElementVisible(dpAmcDismissBtn, FrameworkConstants.SHORT_TIMEOUT)) {
+			waitHelper.click(dpAmcDismissBtn, FrameworkConstants.MEDIUM_TIMEOUT);
 		}
 	}
 
@@ -184,30 +190,32 @@ public class InvestmentPage extends BasePage {
 		return waitHelper.isElementVisible(investmentSuccessTitle, timeoutSeconds);
 	}
 
+	@Step("Click Go to Portfolio")
 	public void clickGoToPortfolio() {
-		waitHelper.click(goToPortfolioBtn, 10);
+		waitHelper.click(goToPortfolioBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
-	@FindBy(xpath = "(//input[@id='investmentAmtInput'])[2]")
+	@FindBy(xpath = "//div[contains(@class,'ria-onb-investbox')]//input[@id='investmentAmtInput']")
 	private WebElement investmentAmtInput;
 
-	@FindBy(xpath = "(//input[@id='investmentAmtInput'])[1]")
+	@FindBy(xpath = "//div[contains(@class,'investment-modal')]//input[@id='investmentAmtInput']")
 	private WebElement investmentAmtEditInput;
 
 	private void clearAndType(WebElement toastElement, WebElement inputElement, String amountText) {
-		waitHelper.waitForToastToDisappearSafely(toastElement, 5);
-		int amount = UtilsMethod.parseAmount(amountText);
-		WebElement input = waitHelper.waitForClickable(inputElement, 10);
+		waitHelper.waitForToastToDisappearSafely(toastElement, FrameworkConstants.MEDIUM_TIMEOUT);
+		int amount = TestUtils.parseAmount(amountText);
+		WebElement input = waitHelper.waitForClickable(inputElement, FrameworkConstants.DEFAULT_TIMEOUT);
 		input.click();
-		input.sendKeys(Keys.CONTROL, "a");
-		input.sendKeys(Keys.DELETE);
+		input.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
 		input.sendKeys(String.valueOf(amount));
 	}
 
+	@Step("Enter investment amount: {amountText}")
 	public void enterInvestmentAmount(String amountText) {
 		clearAndType(errorToastMessage, investmentAmtInput, amountText);
 	}
 
+	@Step("Enter edit investment amount: {amountText}")
 	public void enterEditInvestmentAmount(String amountText) {
 		clearAndType(editErrorToastMessage, investmentAmtEditInput, amountText);
 	}
@@ -215,30 +223,31 @@ public class InvestmentPage extends BasePage {
 	@FindBy(id = "notistack-snackbar")
 	private WebElement errorToastMessage;
 
-	@FindBy(xpath = "(//span[@class='f12 red'])[1]")
+	@FindBy(xpath = "//div[contains(@class,'ria-error-msg')]//span[contains(@class,'red')]")
 	private WebElement editErrorToastMessage;
 
 	public boolean isErrorToastVisible() {
-		return waitHelper.isElementVisible(errorToastMessage, 3);
+		return waitHelper.isElementVisible(errorToastMessage, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	public String getErrorToastText() {
-		return waitHelper.getText(errorToastMessage, 3);
+		return waitHelper.getText(errorToastMessage, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	public boolean isEditErrorToastVisible() {
-		return waitHelper.isElementVisible(editErrorToastMessage, 3);
+		return waitHelper.isElementVisible(editErrorToastMessage, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	public String getEditErrorToastText() {
-		return waitHelper.getText(editErrorToastMessage, 3);
+		return waitHelper.getText(editErrorToastMessage, FrameworkConstants.SHORT_TIMEOUT);
 	}
 
 	@FindBy(xpath = "//span[contains(@class,'edit-icon')]")
 	private WebElement editIcon;
 
+	@Step("Click edit icon")
 	public void clickEditIcon() {
-		waitHelper.click(editIcon, 10);
+		waitHelper.click(editIcon, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 }

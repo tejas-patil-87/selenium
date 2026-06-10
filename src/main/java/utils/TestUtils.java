@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -22,12 +23,11 @@ import org.slf4j.LoggerFactory;
 
 import drivers.DriverFactory;
 
-public class UtilsMethod {
+public class TestUtils {
 
-	private static final Logger log = LoggerFactory.getLogger(UtilsMethod.class);
+	private static final Logger log = LoggerFactory.getLogger(TestUtils.class);
 
-	private UtilsMethod() {
-
+	private TestUtils() {
 	}
 
 	public static String captureScreenshot(String testName) {
@@ -53,26 +53,47 @@ public class UtilsMethod {
 		return "screenshots/" + fileName;
 	}
 
-	public static void cleanScreenshotDirectory() {
-		File screenshotDir = new File(FrameworkConstants.SCREENSHOT_DIR);
-		if (!screenshotDir.exists()) {
-			screenshotDir.mkdirs();
-			log.info("Screenshot directory created");
+	private static void cleanDirectory(String dirPath, Predicate<File> filter, String logLabel) {
+		File dir = new File(dirPath);
+		if (!dir.exists()) {
+			dir.mkdirs();
+			log.info("{} directory created", logLabel);
 			return;
 		}
-		File[] files = screenshotDir.listFiles();
-		if (files == null) return;
+		File[] files = dir.listFiles();
+		if (files == null || files.length == 0) return;
 		for (File file : files) {
-			if (file.isFile()) file.delete();
+			if (file.isFile() && filter.test(file)) file.delete();
 		}
-		log.info("Screenshot directory cleaned");
+		log.info("{} directory cleaned", logLabel);
+	}
+
+	public static void cleanScreenshotDirectory() {
+		cleanDirectory(FrameworkConstants.SCREENSHOT_DIR, f -> true, "Screenshot");
+	}
+
+	public static void deleteAllZipFiles() {
+		cleanDirectory(FrameworkConstants.ZIP_DIR, f -> f.getName().endsWith(".zip"), "Zip");
+	}
+
+	public static void cleanLogFiles() {
+		cleanDirectory(FrameworkConstants.LOG_DIR, f -> true, "Log");
+	}
+
+	public static void cleanAllureResults() {
+		cleanDirectory(System.getProperty("user.dir") + "/allure-results", f -> true, "Allure results");
+	}
+
+	public static void cleanReportFiles() {
+		cleanDirectory(FrameworkConstants.REPORT_DIR,
+				f -> f.getName().equals("IMP-Automation-Report.html"),
+				"Report");
 	}
 
 	public static void zipScreenshots() {
-
 		File sourceFolder = new File(FrameworkConstants.SCREENSHOT_DIR);
-
-		if (!sourceFolder.exists() || sourceFolder.listFiles() == null || sourceFolder.listFiles().length == 0) {
+		File[] files = sourceFolder.listFiles();
+		if (!sourceFolder.exists() || files == null || files.length == 0) {
 			log.info("No screenshots found to zip");
 			return;
 		}
@@ -80,7 +101,7 @@ public class UtilsMethod {
 		String timestamp = new SimpleDateFormat("dd-MM-yyyy-_HH-mm-ss").format(new Date());
 		String zipPath = FrameworkConstants.ZIP_DIR + "screenshots_" + timestamp + ".zip";
 		try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath))) {
-			for (File file : sourceFolder.listFiles()) {
+			for (File file : files) {
 				if (file.isFile()) {
 					addFileToZip(file, zos);
 				}
@@ -95,57 +116,13 @@ public class UtilsMethod {
 		try (FileInputStream fis = new FileInputStream(file)) {
 			ZipEntry entry = new ZipEntry(file.getName());
 			zos.putNextEntry(entry);
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[8192];
 			int length;
 			while ((length = fis.read(buffer)) > 0) {
 				zos.write(buffer, 0, length);
 			}
 			zos.closeEntry();
 		}
-	}
-
-	public static void deleteAllZipFiles() {
-		File dir = new File(FrameworkConstants.ZIP_DIR);
-		if (!dir.exists()) {
-			dir.mkdirs();
-			log.info("Zip directory created");
-			return;
-		}
-		File[] files = dir.listFiles();
-		if (files == null || files.length == 0) return;
-		for (File file : files) {
-			if (file.isFile() && file.getName().endsWith(".zip")) file.delete();
-		}
-		log.info("All zip files cleaned");
-	}
-
-	public static void cleanLogFiles() {
-		File logDir = new File(FrameworkConstants.LOG_DIR);
-		if (!logDir.exists()) {
-			logDir.mkdirs();
-			log.info("Log directory created");
-			return;
-		}
-		File[] files = logDir.listFiles();
-		if (files == null || files.length == 0) return;
-		for (File file : files) {
-			if (file.isFile()) file.delete();
-		}
-		log.info("Log directory cleaned");
-	}
-
-	public static void cleanAllureResults() {
-		File allureDir = new File(System.getProperty("user.dir") + "/allure-results");
-		if (!allureDir.exists()) {
-			allureDir.mkdirs();
-			return;
-		}
-		File[] files = allureDir.listFiles();
-		if (files == null || files.length == 0) return;
-		for (File file : files) {
-			if (file.isFile()) file.delete();
-		}
-		log.info("Allure results cleaned");
 	}
 
 	public static void fillOTP(List<WebElement> otpFields, String value) {
@@ -159,6 +136,10 @@ public class UtilsMethod {
 		WebElement element = driver.findElement(locator);
 		JavascriptExecutor js = (JavascriptExecutor) driver;
 		js.executeScript("arguments[0].click();", element);
+	}
+
+	public static void clickWithJS(WebDriver driver, WebElement element) {
+		((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
 	}
 
 	public static void scrollIntoView(WebDriver driver, By locator) {

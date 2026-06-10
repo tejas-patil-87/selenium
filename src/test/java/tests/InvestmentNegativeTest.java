@@ -3,120 +3,36 @@ package tests;
 import java.util.List;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
-import base.BaseTest;
+import base.BaseInvestmentTest;
 import listeners.TestListener;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
-import pages.InvestmentPage;
-import pages.LoginPage;
-import pages.ProductPage;
-import pages.ProductPage.ProductDetails;
 import utils.ExcelDataReader;
-import utils.UtilsMethod;
+import utils.TestUtils;
 
 @Epic("Investment Management Platform")
 @Feature("Investment Validations")
-public class InvestmentNegativeTest extends BaseTest {
-	private LoginPage loginPage;
-	protected ProductPage productPage;
-	protected InvestmentPage investmentPage;
-
-	@BeforeClass
-	public void initPages() {
-		loginPage = new LoginPage(driver);
-		productPage = new ProductPage(driver);
-		investmentPage = new InvestmentPage(driver);
-	}
-
-	@Story("Advisor Login")
-	@Severity(SeverityLevel.CRITICAL)
-	@Test(priority = 1, description = "Login to IMP Application")
-	public void loginTest() {
-		TestListener.logStep("Entering advisor credentials");
-		loginPage.loginToApplication();
-	}
-
-	@Story("Product Verification")
-	@Severity(SeverityLevel.NORMAL)
-	@Test(priority = 2, dependsOnMethods = "loginTest", description = "Verify Product Details & Card Information")
-	public void productFlowTest() {
-		String expectedTitle = ExcelDataReader.get("app.page.title");
-		String productName = ExcelDataReader.get("product.new");
-		String expectedMinInvestment = ExcelDataReader.get("product.min.investment");
-		String expectedHorizon = ExcelDataReader.get("product.horizon");
-
-		boolean tabOpened = productPage.switchToTabByTitle(expectedTitle);
-		Assert.assertTrue(tabOpened, "Navigation failed | Expected: Page title = '" + expectedTitle
-				+ "' | Actual: User stayed on previous page");
-
-		TestListener.logStep("Closing popup if present");
-		productPage.closePopupIfPresent();
-		TestListener.logStep("Clicking New Launches tab");
-		productPage.clickProductTab("New Launches");
-
-		TestListener.logStep("Verifying product list");
-		List<String> titles = productPage.getProductTitles();
-		Assert.assertFalse(titles.isEmpty(),
-				"Product verification failed | Expected: Product list should be displayed | Actual: No products were found");
-		Assert.assertTrue(titles.contains(productName), "Product verification failed | Expected product: '"
-				+ productName + "' | Actual products shown: " + titles);
-
-		TestListener.logStep("Verifying product card details for: " + productName);
-		String[] cardDetails = productPage.getProductCardDetails(productName);
-		Assert.assertEquals(cardDetails[0], expectedMinInvestment,
-				"Product card validation failed | Field: Min Investment | Product: '" + productName + "' | Expected: '"
-						+ expectedMinInvestment + "' | Actual: '" + cardDetails[0] + "'");
-		Assert.assertEquals(cardDetails[1], expectedHorizon,
-				"Product card validation failed | Field: Horizon | Product: '" + productName + "' | Expected: '"
-						+ expectedHorizon + "' | Actual: '" + cardDetails[1] + "'");
-
-		TestListener.logStep("Clicking Invest Now for: " + productName);
-		productPage.clickInvestNowByProductTitle(productName);
-		TestListener.logStep("Fetching product details");
-		ProductDetails actual = productPage.fetchProductDetails();
-		SoftAssert sa = new SoftAssert();
-		sa.assertEquals(actual.getCurrentValue(), ExcelDataReader.get("product.current.value"),
-				"Product details mismatch | Field: Current Value | Expected: '"
-						+ ExcelDataReader.get("product.current.value") + "' | Actual: '" + actual.getCurrentValue() + "'");
-		sa.assertEquals(actual.getMinInvestment(), ExcelDataReader.get("product.min.investment"),
-				"Product details mismatch | Field: Min Investment | Expected: '"
-						+ ExcelDataReader.get("product.min.investment") + "' | Actual: '" + actual.getMinInvestment() + "'");
-		sa.assertEquals(actual.getHorizon(), ExcelDataReader.get("product.horizon"),
-				"Product details mismatch | Field: Horizon | Expected: '" + ExcelDataReader.get("product.horizon")
-						+ "' | Actual: '" + actual.getHorizon() + "'");
-		sa.assertEquals(actual.getInceptionDate(), ExcelDataReader.get("product.inception.date"),
-				"Product details mismatch | Field: Inception Date | Expected: '"
-						+ ExcelDataReader.get("product.inception.date") + "' | Actual: '" + actual.getInceptionDate() + "'");
-		sa.assertEquals(actual.getBenchmark(), ExcelDataReader.get("product.benchmark"),
-				"Product details mismatch | Field: Benchmark | Expected: '" + ExcelDataReader.get("product.benchmark")
-						+ "' | Actual: '" + actual.getBenchmark() + "'");
-		sa.assertEquals(actual.getMethodology(), ExcelDataReader.get("product.methodology"),
-				"Product details mismatch | Field: Methodology | Expected: '" + ExcelDataReader.get("product.methodology")
-						+ "' | Actual: '" + actual.getMethodology() + "'");
-		sa.assertEquals(actual.getNoOfStocks(), ExcelDataReader.get("product.no.of.stocks"),
-				"Product details mismatch | Field: No. of Stocks | Expected: '"
-						+ ExcelDataReader.get("product.no.of.stocks") + "' | Actual: '" + actual.getNoOfStocks() + "'");
-		sa.assertAll();
-
-		TestListener.logStep("Clicking Invest Lumpsum");
-		productPage.clickInvestLumpsum();
-	}
+public class InvestmentNegativeTest extends BaseInvestmentTest {
 
 	@DataProvider(name = "invalidInvestmentAmounts")
 	public Object[][] invalidInvestmentAmounts() {
+		String minInvestment = ExcelDataReader.get("product.min.investment");
+		String notMultiple = ExcelDataReader.get("invalid.amount.not.multiple");
+		String errorNotMultiple = ExcelDataReader.get("error.not.multiple");
+		String errorMinAmount = ExcelDataReader.get("error.min.amount");
+		String invalidZero = ExcelDataReader.get("invalid.amount.zero");
+
 		return new Object[][] {
-				{ ExcelDataReader.get("product.min.investment") + ExcelDataReader.get("invalid.amount.not.multiple"),
-						ExcelDataReader.get("error.not.multiple") },
-				{ ExcelDataReader.get("invalid.amount.not.multiple"), ExcelDataReader.get("error.min.amount") },
-				{ ExcelDataReader.get("invalid.amount.zero"), ExcelDataReader.get("error.min.amount") } };
+				{ minInvestment + notMultiple, errorNotMultiple },
+				{ notMultiple, errorMinAmount },
+				{ invalidZero, errorMinAmount } };
 	}
 
 	@Story("Invalid Amount Validation")
@@ -139,7 +55,7 @@ public class InvestmentNegativeTest extends BaseTest {
 	@Test(priority = 4, dependsOnMethods = "verifyInvestmentAmountValidations", description = "Verify Investment Flow with Activation Model")
 	public void investFlowTest() {
 		String baseAmount = ExcelDataReader.get("product.min.investment");
-		int baseAmountInt = UtilsMethod.parseAmount(baseAmount);
+		int baseAmountInt = TestUtils.parseAmount(baseAmount);
 
 		TestListener.logStep("Verifying investment amount buttons");
 		List<Integer> actualAmounts = investmentPage.getAmountButtonValues();
@@ -159,8 +75,9 @@ public class InvestmentNegativeTest extends BaseTest {
 		SoftAssert sa = new SoftAssert();
 		sa.assertTrue(investmentPage.isActivationModelVisible(),
 				"Activation Model visibility check failed | Expected: visible | Actual: Not visible");
-		sa.assertEquals(investmentPage.getListIconCount(), 2,
-				"List icon verification failed | Expected: 2 | Actual: " + investmentPage.getListIconCount());
+		int iconCount = investmentPage.getListIconCount();
+		sa.assertEquals(iconCount, 2,
+				"List icon verification failed | Expected: 2 | Actual: " + iconCount);
 		sa.assertEquals(investmentPage.getPortfolioDescription(), ExcelDataReader.get("activation.model.description"),
 				"Portfolio description mismatch | Expected: '" + ExcelDataReader.get("activation.model.description")
 						+ "' | Actual: '" + investmentPage.getPortfolioDescription() + "'");
@@ -182,7 +99,7 @@ public class InvestmentNegativeTest extends BaseTest {
 	public void negativeEditPopup(String amount, String expectedError) {
 		TestListener.logStep("Entering invalid edit amount: " + amount);
 		investmentPage.enterEditInvestmentAmount(amount);
-		investmentPage.clickConfirmInvestmentInvestNow();
+		investmentPage.clickInvestNow();
 		TestListener.logStep("Verifying error toast for edit amount: " + amount);
 		Assert.assertTrue(investmentPage.isEditErrorToastVisible(),
 				"Error toast did not appear for edit amount: " + amount);
@@ -190,5 +107,4 @@ public class InvestmentNegativeTest extends BaseTest {
 		Assert.assertEquals(actualError, expectedError, "Validation failed for edit investment amount: " + amount
 				+ " | Expected: '" + expectedError + "' | Actual: '" + actualError + "'");
 	}
-
 }

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 public class ConfigReader {
 
 	private static final Logger log = LoggerFactory.getLogger(ConfigReader.class);
-	private static Properties prop = new Properties();
+	private static final Properties prop = new Properties();
 
 	static {
 		loadFile("config.properties");
@@ -17,8 +17,7 @@ public class ConfigReader {
 	}
 
 	private static void loadFile(String fileName) {
-		try {
-			InputStream input = ConfigReader.class.getClassLoader().getResourceAsStream(fileName);
+		try (InputStream input = ConfigReader.class.getClassLoader().getResourceAsStream(fileName)) {
 			if (input == null) {
 				log.warn("Properties file not found: {}", fileName);
 				return;

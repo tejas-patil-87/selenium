@@ -27,7 +27,7 @@
             <AppenderRef ref="Console" />
             <AppenderRef ref="FileLog" />
         </Logger>
-        <Logger name="pages" level="DEBUG" additivity="false">
+        <Logger name="pages" level="INFO" additivity="false">
             <AppenderRef ref="Console" />
             <AppenderRef ref="FileLog" />
         </Logger>

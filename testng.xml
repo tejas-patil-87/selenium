@@ -3,7 +3,7 @@
 <suite name="IMP Test Suite">
     <test name="New Investment">
         <classes>
-            <class name="tests.NewInvestment"/>
+            <class name="tests.NewInvestmentTest"/>
         </classes>
     </test>
 </suite>

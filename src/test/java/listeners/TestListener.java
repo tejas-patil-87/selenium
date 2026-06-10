@@ -3,16 +3,20 @@ package listeners;
 import org.testng.*;
 import com.aventstack.extentreports.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.stream.Collectors;
+
 import utils.ConfigReader;
 import utils.ExecutionSummary;
 import utils.ExcelDataReader;
 import utils.ExtentManager;
-import utils.UtilsMethod;
+import utils.TestUtils;
 
 public class TestListener implements ITestListener {
-	private static long suiteStartTime;
 	private static final ThreadLocal<ExtentTest> testThread = new ThreadLocal<>();
-	private ExtentReports extent = ExtentManager.getExtent();
+	private final ExtentReports extent = ExtentManager.getExtent();
 
 	public static void logStep(String message) {
 		ExtentTest test = testThread.get();
@@ -23,9 +27,8 @@ public class TestListener implements ITestListener {
 
 	@Override
 	public void onStart(ITestContext context) {
-		suiteStartTime = System.currentTimeMillis();
-		ExecutionSummary.startTime = System.currentTimeMillis();
-		ExecutionSummary.totalTests.set(context.getAllTestMethods().length);
+		ExecutionSummary.setStartTime(System.currentTimeMillis());
+		ExecutionSummary.setTotalTests(context.getAllTestMethods().length);
 	}
 
 	@Override
@@ -63,7 +66,7 @@ public class TestListener implements ITestListener {
 		long endTime = System.currentTimeMillis();
 		long duration = endTime - startTime;
 		String tat = formatDuration(duration);
-		String screenshotPath = UtilsMethod.captureScreenshot(result.getMethod().getMethodName());
+		String screenshotPath = TestUtils.captureScreenshot(result.getMethod().getMethodName());
 		String cleanFailureMessage = extractSoftAssertFailures(result.getThrowable());
 		String finalMessage;
 		if (cleanFailureMessage == null || cleanFailureMessage.isEmpty()) {
@@ -79,8 +82,8 @@ public class TestListener implements ITestListener {
 		}
 		testThread.get().info("⏱ Execution Time (TAT): " + tat);
 
-		ExecutionSummary.failed.incrementAndGet();
-		ExecutionSummary.failedTests.add(new ExecutionSummary.FailedTest(result.getMethod().getMethodName(),
+		ExecutionSummary.incrementFailed();
+		ExecutionSummary.addFailedTest(new ExecutionSummary.FailedTest(result.getMethod().getMethodName(),
 				result.getTestClass().getName(), finalMessage));
 	}
 
@@ -119,14 +122,9 @@ public class TestListener implements ITestListener {
 		if (params == null || params.length == 0) {
 			return "";
 		}
-		StringBuilder sb = new StringBuilder("\nData: ");
-		for (int i = 0; i < params.length; i++) {
-			sb.append(params[i]);
-			if (i < params.length - 1) {
-				sb.append(" | ");
-			}
-		}
-		return sb.toString();
+		return "\nData: " + Arrays.stream(params)
+				.map(Object::toString)
+				.collect(Collectors.joining(" | "));
 	}
 
 	private String extractSoftAssertFailures(Throwable throwable) {
@@ -137,6 +135,10 @@ public class TestListener implements ITestListener {
 		message = message.replace("The following asserts failed:", "").trim();
 		message = message.replaceAll("\\n+", "\n");
 		return message;
+	}
+
+	private String formatTimestamp(long millis) {
+		return new SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(new Date(millis));
 	}
 
 	private String formatDuration(long millis) {
@@ -155,7 +157,7 @@ public class TestListener implements ITestListener {
 		String dataInfo = getTestData(result);
 		testThread.get().pass("✅ Test Passed" + dataInfo);
 		testThread.get().info("⏱ Execution Time (TAT): " + tat);
-		ExecutionSummary.passed.incrementAndGet();
+		ExecutionSummary.incrementPassed();
 	}
 
 	@Override
@@ -165,39 +167,55 @@ public class TestListener implements ITestListener {
 				.anyMatch(passed -> passed.getMethod().equals(result.getMethod())));
 
 		long suiteEndTime = System.currentTimeMillis();
-		ExecutionSummary.endTime = suiteEndTime;
-		long totalDuration = suiteEndTime - suiteStartTime;
+		ExecutionSummary.setEndTime(suiteEndTime);
+		long totalDuration = suiteEndTime - ExecutionSummary.getStartTime();
 		String totalTat = formatDuration(totalDuration);
 		ExtentTest summary = extent.createTest("📊 Execution Summary");
-		summary.info("📅 Start Time: " + new java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(new java.util.Date(ExecutionSummary.startTime)));
-		summary.info("📅 End Time: " + new java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a").format(new java.util.Date(suiteEndTime)));
+		summary.info("📅 Start Time: " + formatTimestamp(ExecutionSummary.getStartTime()));
+		summary.info("📅 End Time: " + formatTimestamp(suiteEndTime));
 		summary.info("⏱ Total Execution Time (TAT): " + totalTat);
-		summary.info("✅ Passed: " + ExecutionSummary.passed.get());
-		summary.info("❌ Failed: " + ExecutionSummary.failed.get());
-		summary.info("⚠️ Skipped: " + ExecutionSummary.skipped.get());
-		int total = ExecutionSummary.passed.get() + ExecutionSummary.failed.get() + ExecutionSummary.skipped.get();
-		int passRate = total > 0 ? (ExecutionSummary.passed.get() * 100) / total : 0;
-		summary.info("📈 Pass Rate: " + passRate + "%");
+		summary.info("✅ Passed: " + ExecutionSummary.getPassed());
+		summary.info("❌ Failed: " + ExecutionSummary.getFailed());
+		summary.info("⚠️ Skipped: " + ExecutionSummary.getSkipped());
+		summary.info("📈 Pass Rate: " + ExecutionSummary.getPassRate() + "%");
 		summary.info("🌐 Environment: " + (ConfigReader.get("app.base.url").contains("uat") ? "UAT" : "PROD"));
 		summary.info("🔗 App URL: " + ConfigReader.get("app.base.url"));
 		summary.info("👤 Executed By: " + System.getProperty("user.name"));
-		if (!ExecutionSummary.failedTests.isEmpty()) {
+		if (!ExecutionSummary.getFailedTests().isEmpty()) {
 			summary.info("❌ Failed Tests:");
-			for (ExecutionSummary.FailedTest ft : ExecutionSummary.failedTests) {
-				summary.info("&nbsp;&nbsp;&nbsp;→ " + ft.testCase + " | " + ft.reason);
+			for (ExecutionSummary.FailedTest ft : ExecutionSummary.getFailedTests()) {
+				summary.info("&nbsp;&nbsp;&nbsp;→ " + ft.getTestCase() + " | " + ft.getReason());
 			}
 		}
 		summary.getModel().setStatus(Status.INFO);
 		extent.flush();
 		testThread.remove();
+
+		System.out.println("\n╔══════════════════════════════════════╗");
+		System.out.println("║       IMP AUTOMATION - SUITE RESULT  ║");
+		System.out.println("╠══════════════════════════════════════╣");
+		System.out.println("║  ✅ Passed  : " + String.format("%-23s", ExecutionSummary.getPassed()) + "║");
+		System.out.println("║  ❌ Failed  : " + String.format("%-23s", ExecutionSummary.getFailed()) + "║");
+		System.out.println("║  ⚠️  Skipped : " + String.format("%-22s", ExecutionSummary.getSkipped()) + "║");
+		System.out.println("║  📈 Pass Rate: " + String.format("%-22s", ExecutionSummary.getPassRate() + "%") + "║");
+		System.out.println("║  ⏱  TAT     : " + String.format("%-23s", ExecutionSummary.getExecutionTime()) + "║");
+		System.out.println("╚══════════════════════════════════════╝\n");
 	}
 
 	@Override
 	public void onTestSkipped(ITestResult result) {
 		String reason = result.getThrowable() != null ? result.getThrowable().getMessage()
 				: "Skipped due to dependency failure";
+		if (testThread.get() == null) {
+			String testName = result.getMethod().getDescription() != null
+					? result.getMethod().getDescription()
+					: result.getMethod().getMethodName();
+			ExtentTest test = extent.createTest(testName);
+			test.assignCategory(result.getTestClass().getRealClass().getSimpleName());
+			testThread.set(test);
+		}
 		testThread.get().skip(reason);
-		ExecutionSummary.skipped.incrementAndGet();
+		ExecutionSummary.incrementSkipped();
 	}
 
 }

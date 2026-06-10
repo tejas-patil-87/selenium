@@ -1,5 +1,6 @@
 package drivers;
 
+import java.time.Duration;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -11,12 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import utils.ConfigReader;
+import utils.FrameworkConstants;
 
 public class DriverFactory {
 	private static final Logger log = LoggerFactory.getLogger(DriverFactory.class);
-	private static ThreadLocal<WebDriver> tlDriver = new ThreadLocal<>();
+	private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
 
-	private static WebDriver buildDriver() {
+	private static WebDriver createBrowser() {
 		String browser = ConfigReader.get("browser").toLowerCase();
 		boolean headless = "true".equals(ConfigReader.get("browser.headless"));
 		WebDriver driver;
@@ -49,33 +51,35 @@ public class DriverFactory {
 		return driver;
 	}
 
-	// ThreadLocal mode — for regular tests via BaseTest
-	public static void initDriver() {
-		WebDriver driver = buildDriver();
+	private static void launchApp(WebDriver driver) {
+		driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(FrameworkConstants.EXTRA_LONG_TIMEOUT));
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(0));
 		String launchUrl = ConfigReader.get("app.base.url") + ConfigReader.get("app.login.path");
 		driver.get(launchUrl);
-		tlDriver.set(driver);
 		log.info("Browser [{}] launched and navigated to {}", ConfigReader.get("browser"), launchUrl);
 	}
 
+	public static void initDriver() {
+		WebDriver driver = createBrowser();
+		launchApp(driver);
+		driverThreadLocal.set(driver);
+	}
+
 	public static WebDriver getDriver() {
-		return tlDriver.get();
+		return driverThreadLocal.get();
 	}
 
 	public static void quitDriver() {
 		if (getDriver() != null) {
 			getDriver().quit();
-			tlDriver.remove();
+			driverThreadLocal.remove();
 			log.info("Browser quit and driver removed");
 		}
 	}
 
-	// Instance mode — for Factory pattern tests (MultiClientInvestmentTest)
 	public static WebDriver createDriver() {
-		WebDriver driver = buildDriver();
-		String launchUrl = ConfigReader.get("app.base.url") + ConfigReader.get("app.login.path");
-		driver.get(launchUrl);
-		log.info("Instance browser [{}] launched and navigated to {}", ConfigReader.get("browser"), launchUrl);
+		WebDriver driver = createBrowser();
+		launchApp(driver);
 		return driver;
 	}
 

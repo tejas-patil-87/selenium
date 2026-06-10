@@ -3,102 +3,42 @@ package tests;
 import java.util.List;
 
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import base.BaseTest;
+import base.BaseInvestmentTest;
 import listeners.TestListener;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Story;
-import pages.InvestmentPage;
-import pages.LoginPage;
-import pages.ProductPage;
 import utils.DBUtils;
 import utils.ExcelDataReader;
-import utils.UtilsMethod;
+import utils.FrameworkConstants;
+import utils.TestUtils;
 
 @Epic("Investment Management Platform")
 @Feature("New Investment")
-public class NewInvestment extends BaseTest {
-	private static final Logger log = LoggerFactory.getLogger(NewInvestment.class);
-	private LoginPage loginPage;
-	protected InvestmentPage investmentPage;
-	protected ProductPage productPage;
+public class NewInvestmentTest extends BaseInvestmentTest {
 
-	@BeforeClass
-	public void initPages() {
-		loginPage = new LoginPage(driver);
-		investmentPage = new InvestmentPage(driver);
-		productPage = new ProductPage(driver);
-	}
-
-	@Story("Advisor Login")
-	@Severity(SeverityLevel.CRITICAL)
-	@Test(priority = 1, description = "Login to IMP Application")
-	public void loginTest() {
-		TestListener.logStep("Entering advisor credentials");
-		loginPage.loginToApplication();
-	}
-
-	@Story("Product Verification")
-	@Severity(SeverityLevel.NORMAL)
-	@Test(priority = 2, dependsOnMethods = "loginTest", description = "Verify Product Details & Card Information")
-	public void productFlowTest() {
-		String expectedTitle = ExcelDataReader.get("app.page.title");
-		Assert.assertTrue(productPage.switchToTabByTitle(expectedTitle),
-				"Tab switch failed | Expected title: '" + expectedTitle + "'");
-
-		TestListener.logStep("Closing popup if present");
-		productPage.closePopupIfPresent();
-		TestListener.logStep("Clicking New Launches tab");
-		productPage.clickProductTab("New Launches");
-
-		String productName = ExcelDataReader.get("product.new");
-		TestListener.logStep("Verifying product card details for: " + productName);
-		String[] cardDetails = productPage.getProductCardDetails(productName);
-		SoftAssert sa = new SoftAssert();
-		sa.assertEquals(cardDetails[0], ExcelDataReader.get("product.min.investment"), "Product Card > Min Investment");
-		sa.assertEquals(cardDetails[1], ExcelDataReader.get("product.horizon"), "Product Card > Horizon");
-		sa.assertAll();
-
-		TestListener.logStep("Clicking Invest Now for: " + productName);
-		productPage.clickInvestNowByProductTitle(productName);
-		TestListener.logStep("Fetching product details");
-		ProductPage.ProductDetails details = productPage.fetchProductDetails();
-		log.info("Product Details: {}", details);
-
-		SoftAssert detailSa = new SoftAssert();
-		detailSa.assertEquals(details.getCurrentValue(), ExcelDataReader.get("product.current.value"),
-				"Current Value mismatch");
-		detailSa.assertEquals(details.getMinInvestment(), ExcelDataReader.get("product.min.investment"),
-				"Min Investment mismatch");
-		detailSa.assertEquals(details.getHorizon(), ExcelDataReader.get("product.horizon"), "Horizon mismatch");
-		detailSa.assertEquals(details.getInceptionDate(), ExcelDataReader.get("product.inception.date"),
-				"Inception Date mismatch");
-		detailSa.assertEquals(details.getBenchmark(), ExcelDataReader.get("product.benchmark"), "Benchmark mismatch");
-		detailSa.assertEquals(details.getMethodology(), ExcelDataReader.get("product.methodology"),
-				"Methodology mismatch");
-		detailSa.assertEquals(details.getNoOfStocks(), ExcelDataReader.get("product.no.of.stocks"),
-				"No of Stocks mismatch");
-		detailSa.assertAll();
-
-		TestListener.logStep("Clicking Invest Lumpsum");
-		productPage.clickInvestLumpsum();
-	}
+	private static final Logger log = LoggerFactory.getLogger(NewInvestmentTest.class);
 
 	@Story("Lumpsum Investment")
 	@Severity(SeverityLevel.CRITICAL)
 	@Test(priority = 3, dependsOnMethods = "productFlowTest", description = "Complete New Lumpsum Investment Flow")
 	public void investFlowTest() {
 		String baseAmount = ExcelDataReader.get("product.min.investment");
-		int baseAmountInt = UtilsMethod.parseAmount(baseAmount);
+		int baseAmountInt = TestUtils.parseAmount(baseAmount);
+		int expectedInvestmentAmountInt = baseAmountInt * 2;
+
+		TestListener.logStep("Verifying DB is clean before investing");
+		Assert.assertFalse(DBUtils.isSubscriptionDataPresent(expectedInvestmentAmountInt),
+				"Pre-condition failed | Existing subscription found for amount ₹" + expectedInvestmentAmountInt
+						+ " — DB cleanup may have failed. Run DBMaintenanceTool first.");
 
 		TestListener.logStep("Verifying investment amount buttons");
 		List<Integer> actualAmounts = investmentPage.getAmountButtonValues();
@@ -148,7 +88,7 @@ public class NewInvestment extends BaseTest {
 		TestListener.logStep("Clicking Invest Now");
 		Assert.assertTrue(investmentPage.isInvestNowVisible(),
 				"Confirm Investment action failed | Expected: 'Invest Now' button should be visible | Actual: Not visible");
-		investmentPage.clickConfirmInvestmentInvestNow();
+		investmentPage.clickInvestNow();
 
 		TestListener.logStep("Filling investment OTP");
 		investmentPage.fillInvestmentOtp();
@@ -160,12 +100,11 @@ public class NewInvestment extends BaseTest {
 		investmentPage.dismissDpAmcPopupIfPresent();
 		SoftAssert successSa = new SoftAssert();
 		TestListener.logStep("Verifying success popup");
-		boolean isSuccessPopupVisible = investmentPage.isInvestmentSuccessPopupVisible(60);
-		successSa.assertTrue(isSuccessPopupVisible,
+		successSa.assertTrue(investmentPage.isInvestmentSuccessPopupVisible(FrameworkConstants.EXTRA_LONG_TIMEOUT),
 				"Investment failed | Expected: Success popup should appear within 60 seconds | Actual: Popup did not appear");
 		investmentPage.clickGoToPortfolio();
 		TestListener.logStep("Verifying DB subscription entry for amount: " + expectedInvestmentAmount);
-		int investmentAmount = UtilsMethod.parseAmount(expectedInvestmentAmount);
+		int investmentAmount = TestUtils.parseAmount(expectedInvestmentAmount);
 		boolean isSubscriptionPresent = DBUtils.isSubscriptionDataPresent(investmentAmount);
 		successSa.assertTrue(isSubscriptionPresent,
 				"Investment failed | Expected: Subscription entry in database for amount " + expectedInvestmentAmount
@@ -173,6 +112,4 @@ public class NewInvestment extends BaseTest {
 		successSa.assertAll();
 		log.info("New Investment flow completed successfully");
 	}
-
-	
 }

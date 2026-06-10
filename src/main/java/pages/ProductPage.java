@@ -1,7 +1,7 @@
 package pages;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -9,7 +9,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-import utils.UtilsMethod;
+import io.qameta.allure.Step;
+import utils.FrameworkConstants;
+import utils.TestUtils;
 
 public class ProductPage extends BasePage {
 
@@ -21,38 +23,38 @@ public class ProductPage extends BasePage {
 	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div")
 	private WebElement advisePopup;
 
-	@FindBy(xpath = "//*[@id=\"recommendationAdvisorModal\"]/div/div[1]/div/a")
+	@FindBy(xpath = "//*[@id='recommendationAdvisorModal']//a[contains(@class,'close')]")
 	private WebElement adviseCloseBtn;
 
 	@FindBy(xpath = "//div[contains(@class,'card_tooltip')]")
 	private List<WebElement> titleElements;
 
+	@Step("Switch to tab: {expectedTitle}")
 	public boolean switchToTabByTitle(String expectedTitle) {
-		return waitHelper.waitForTabAndSwitchByTitle(expectedTitle, 5);
+		return waitHelper.waitForTabAndSwitchByTitle(expectedTitle, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
+	@Step("Close advisor popup if present")
 	public void closePopupIfPresent() {
-		if (waitHelper.isElementVisible(advisePopup, 2)) {
-			waitHelper.click(adviseCloseBtn, 5);
+		if (waitHelper.isElementVisible(advisePopup, FrameworkConstants.SHORT_TIMEOUT)) {
+			waitHelper.click(adviseCloseBtn, FrameworkConstants.MEDIUM_TIMEOUT);
 		}
 	}
 
 	private static final String TAB_BY_NAME = "//div[@id='productElement']//a[contains(@class,'tab') and normalize-space()='%s']";
 
+	@Step("Click product tab: {tabName}")
 	public void clickProductTab(String tabName) {
 		By tabLocator = By.xpath(String.format(TAB_BY_NAME, tabName));
-		waitHelper.click(tabLocator, 10);
+		waitHelper.click(tabLocator, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	public List<String> getProductTitles() {
-		List<String> titles = new ArrayList<>();
-		for (WebElement element : titleElements) {
-			String title = element.getAttribute("title");
-			if (title != null && !title.trim().isEmpty()) {
-				titles.add(title.trim());
-			}
-		}
-		return titles;
+		return titleElements.stream()
+				.map(e -> e.getAttribute("title"))
+				.filter(t -> t != null && !t.trim().isEmpty())
+				.map(String::trim)
+				.collect(Collectors.toList());
 	}
 
 	private static final String PRODUCT_CARD_BY_TITLE = "//div[contains(@class,'product-card')][.//div[contains(@class,'card_tooltip') and @title='%s']]";
@@ -62,41 +64,35 @@ public class ProductPage extends BasePage {
 
 	private static final By HORIZON_REL = By.xpath(".//div[normalize-space()='Horizon']/preceding-sibling::div[1]");
 
+	@Step("Get product card details for: {productTitle}")
 	public String[] getProductCardDetails(String productTitle) {
 		String cardXpath = String.format(PRODUCT_CARD_BY_TITLE, productTitle);
-		WebElement productCard = waitHelper.waitForVisibility(By.xpath(cardXpath), 10);
-		String minInvestment = waitHelper.getText(productCard, MIN_INVESTMENT_REL, 2);
-		String horizon = waitHelper.getText(productCard, HORIZON_REL, 2);
+		WebElement productCard = waitHelper.waitForVisibility(By.xpath(cardXpath), FrameworkConstants.DEFAULT_TIMEOUT);
+		String minInvestment = waitHelper.getText(productCard, MIN_INVESTMENT_REL, FrameworkConstants.SHORT_TIMEOUT);
+		String horizon = waitHelper.getText(productCard, HORIZON_REL, FrameworkConstants.SHORT_TIMEOUT);
 		return new String[] { minInvestment, horizon };
 	}
 
 	private static final String INVEST_NOW_BY_TITLE_XPATH = "//div[contains(@class,'product-card')][.//div[@title='%s']]//a[contains(normalize-space(),'Invest')]";
 	private static final String PRODUCT_CARD = "//div[contains(@class,'product-card')][.//div[@title='%s']]";
 
+	@Step("Click Invest Now for product: {productTitle}")
 	public void clickInvestNowByProductTitle(String productTitle) {
 		if (productTitle == null || productTitle.trim().isEmpty()) {
 			throw new IllegalArgumentException("Product title is null or empty");
 		}
 		By productCardBy = By.xpath(String.format(PRODUCT_CARD, productTitle));
 		By investNowBy = By.xpath(String.format(INVEST_NOW_BY_TITLE_XPATH, productTitle));
-		waitHelper.waitForVisibility(productCardBy, 10);
-		UtilsMethod.scrollIntoView(driver, investNowBy);
-		if (waitHelper.isElementEnabled(investNowBy, 5)) {
-			waitHelper.click(investNowBy, 5);
-		} else {
-			UtilsMethod.clickWithJS(driver, investNowBy);
+		waitHelper.waitForVisibility(productCardBy, FrameworkConstants.DEFAULT_TIMEOUT);
+		TestUtils.scrollIntoView(driver, investNowBy);
+		try {
+			waitHelper.click(investNowBy, FrameworkConstants.MEDIUM_TIMEOUT);
+		} catch (Exception e) {
+			TestUtils.clickWithJS(driver, investNowBy);
 		}
 	}
 
-	public class ProductDetails {
-		@Override
-		public String toString() {
-			return "ProductDetails{" + "currentValue='" + currentValue + '\'' + ", minInvestment='" + minInvestment
-					+ '\'' + ", horizon='" + horizon + '\'' + ", inceptionDate='" + inceptionDate + '\''
-					+ ", benchmark='" + benchmark + '\'' + ", methodology='" + methodology + '\'' + ", noOfStocks='"
-					+ noOfStocks + '\'' + '}';
-		}
-
+	public static class ProductDetails {
 		private final String currentValue;
 		private final String minInvestment;
 		private final String horizon;
@@ -116,72 +112,63 @@ public class ProductPage extends BasePage {
 			this.noOfStocks = noOfStocks;
 		}
 
-		public String getCurrentValue() {
-			return currentValue;
-		}
+		public String currentValue() { return currentValue; }
+		public String minInvestment() { return minInvestment; }
+		public String horizon() { return horizon; }
+		public String inceptionDate() { return inceptionDate; }
+		public String benchmark() { return benchmark; }
+		public String methodology() { return methodology; }
+		public String noOfStocks() { return noOfStocks; }
 
-		public String getMinInvestment() {
-			return minInvestment;
-		}
-
-		public String getHorizon() {
-			return horizon;
-		}
-
-		public String getInceptionDate() {
-			return inceptionDate;
-		}
-
-		public String getBenchmark() {
-			return benchmark;
-		}
-
-		public String getMethodology() {
-			return methodology;
-		}
-
-		public String getNoOfStocks() {
-			return noOfStocks;
+		@Override
+		public String toString() {
+			return "ProductDetails{currentValue='" + currentValue + "', minInvestment='" + minInvestment
+					+ "', horizon='" + horizon + "', inceptionDate='" + inceptionDate + "', benchmark='" + benchmark
+					+ "', methodology='" + methodology + "', noOfStocks='" + noOfStocks + "'}";
 		}
 	}
 
 	@FindBy(xpath = "//div[contains(@class,'currt-bal')]//h5")
 	private WebElement currentValueText;
 
-	@FindBy(xpath = "//p[text()='Min Investment']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
+	@FindBy(xpath = "//p[normalize-space()='Min Investment']/ancestor::div[contains(@class,'twoblock')]//div[contains(@class,'text-right')]/p")
 	private WebElement minInvestmentValue;
 
-	@FindBy(xpath = "//p[text()='Horizon']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
+	@FindBy(xpath = "//p[normalize-space()='Horizon']/ancestor::div[contains(@class,'twoblock')]//div[contains(@class,'text-right')]/p")
 	private WebElement horizonValue;
 
-	@FindBy(xpath = "//p[text()='Inception Date']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
+	@FindBy(xpath = "//p[normalize-space()='Inception Date']/ancestor::div[contains(@class,'twoblock')]//div[contains(@class,'text-right')]/p")
 	private WebElement inceptionDateValue;
 
-	@FindBy(xpath = "//p[text()='Benchmark']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
+	@FindBy(xpath = "//p[normalize-space()='Benchmark']/ancestor::div[contains(@class,'twoblock')]//div[contains(@class,'text-right')]/p")
 	private WebElement benchmarkValue;
 
-	@FindBy(xpath = "//p[text()='Methodology']/ancestor::div[contains(@class,'twoblock')]//p[@class='f12 white fw700']")
+	@FindBy(xpath = "//p[normalize-space()='Methodology']/ancestor::div[contains(@class,'twoblock')]//div[contains(@class,'text-right')]/p")
 	private WebElement methodologyValue;
 
-	private static final By NO_OF_STOCKS_BY = By.xpath("//p[normalize-space()='No. of Stocks']"
-			+ "/ancestor::div[contains(@class,'twoblock')]" + "//div[@class='col text-right']//p");
+	private static final By NO_OF_STOCKS_BY = By.xpath("//p[normalize-space()='No. of Stocks']/ancestor::div[contains(@class,'twoblock')]//div[contains(@class,'text-right')]/p");
 
-	public ProductDetails fetchProductDetails() {
-		return new ProductDetails(waitHelper.getText(currentValueText, 10),
-				waitHelper.getText(minInvestmentValue, 5), waitHelper.getText(horizonValue, 5),
-				waitHelper.getText(inceptionDateValue, 5), waitHelper.getText(benchmarkValue, 5),
-				waitHelper.getText(methodologyValue, 5), waitHelper.getText(NO_OF_STOCKS_BY, 5));
+	@Step("Fetch product details from product page")
+	public ProductDetails getProductDetails() {
+		return new ProductDetails(waitHelper.getText(currentValueText, FrameworkConstants.DEFAULT_TIMEOUT),
+				waitHelper.getText(minInvestmentValue, FrameworkConstants.SHORT_TIMEOUT),
+				waitHelper.getText(horizonValue, FrameworkConstants.SHORT_TIMEOUT),
+				waitHelper.getText(inceptionDateValue, FrameworkConstants.SHORT_TIMEOUT),
+				waitHelper.getText(benchmarkValue, FrameworkConstants.SHORT_TIMEOUT),
+				waitHelper.getText(methodologyValue, FrameworkConstants.SHORT_TIMEOUT),
+				waitHelper.getText(NO_OF_STOCKS_BY, FrameworkConstants.SHORT_TIMEOUT));
 	}
 
-	@FindBy(xpath = "//a[normalize-space()='Invest Lumpsum']")
+	@FindBy(xpath = "//a[@data-modal='#editInvestmentAmtPopup' and normalize-space()='Invest Lumpsum']")
 	private WebElement investLumpsumBtn;
 
+	@Step("Click Invest Lumpsum")
 	public void clickInvestLumpsum() {
-		waitHelper.waitForVisibility(currentValueText, 20);
-		if (waitHelper.isElementEnabled(investLumpsumBtn, 5)) {
-			waitHelper.click(investLumpsumBtn, 5);
+		waitHelper.waitForVisibility(currentValueText, FrameworkConstants.LONG_TIMEOUT);
+		if (waitHelper.isElementEnabled(investLumpsumBtn, FrameworkConstants.MEDIUM_TIMEOUT)) {
+			waitHelper.click(investLumpsumBtn, FrameworkConstants.MEDIUM_TIMEOUT);
 		} else {
-			UtilsMethod.clickWithJS(driver, By.xpath("//a[normalize-space()='Invest Lumpsum']"));
+			TestUtils.clickWithJS(driver, investLumpsumBtn);
 		}
 	}
 

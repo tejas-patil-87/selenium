@@ -7,8 +7,10 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
+import io.qameta.allure.Step;
 import utils.ConfigReader;
-import utils.UtilsMethod;
+import utils.FrameworkConstants;
+import utils.TestUtils;
 
 public class LoginPage extends BasePage {
 
@@ -23,102 +25,104 @@ public class LoginPage extends BasePage {
 	@FindBy(id = "advisor-password")
 	private WebElement password;
 
-	@FindBy(xpath = "//a[normalize-space()='Login' and @type='button']")
+	@FindBy(xpath = "//div[contains(@class,'advisory-login-field-wrapper')]//a[normalize-space()='Login']")
 	private WebElement loginBtn;
 
+	@Step("Click Login button")
 	public void clickLoginButton() {
-		waitHelper.click(loginBtn, 10);
+		waitHelper.click(loginBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	private void fillOTP(List<WebElement> otpFields, String OTP, By locator) {
-		waitHelper.waitForVisibility(locator, 10);
-		UtilsMethod.fillOTP(otpFields, OTP);
+		waitHelper.waitForVisibility(locator, FrameworkConstants.DEFAULT_TIMEOUT);
+		TestUtils.fillOTP(otpFields, OTP);
 	}
 
-	private static final By OTP_FIELDS = By.xpath("//div[@class='otp-field']//input[starts-with(@id,'otp-field')]");
+	private static final By ADVISOR_OTP_BY = By.xpath("//div[contains(@class,'advisor-otp-wrapper')]//div[contains(@class,'otp-field')]//input[starts-with(@id,'otp-field')]");
 
-	@FindBy(xpath = "//div[@class='otp-field']//input[starts-with(@id,'otp-field')]")
+	@FindBy(xpath = "//div[contains(@class,'advisor-otp-wrapper')]//div[contains(@class,'otp-field')]//input[starts-with(@id,'otp-field')]")
 	private List<WebElement> advisorOtpFields;
 
-	@FindBy(xpath = "//a[normalize-space()='Submit' and contains(@class,'cta')]")
+	@FindBy(xpath = "//div[contains(@class,'advisor-otp-wrapper')]//a[normalize-space()='Submit']")
 	private WebElement submitBtn;
 
+	@Step("Click Submit OTP button")
 	public void clickSubmitButton() {
-		waitHelper.click(submitBtn, 10);
+		waitHelper.click(submitBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	@FindBy(xpath = "//input[@id='client-code']")
 	private WebElement clientCodeInput;
 
-	@FindBy(xpath = "//a[contains(@class,'cta') and normalize-space()='IAP / IMP']")
+	@FindBy(xpath = "//div[contains(@class,'content')][.//h1[normalize-space()='IAP / IMP']]//button[contains(@class,'cta-button')]")
 	private WebElement iapImpBtn;
 
+	@Step("Click IAP / IMP portal button")
 	public void clickOnIapImp() {
-		waitHelper.click(iapImpBtn, 10);
+		waitHelper.click(iapImpBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
 	@FindBy(xpath = "//a[normalize-space()='Logout and Continue here']")
 	private WebElement logoutAndContinueBtn;
 
+	@Step("Handle logout popup if present")
 	public void clickLogoutAndContinueIfPresent() {
-		if (waitHelper.isElementVisible(logoutAndContinueBtn, 3)) {
-			waitHelper.click(logoutAndContinueBtn, 5);
+		if (waitHelper.isElementVisible(logoutAndContinueBtn, FrameworkConstants.SHORT_TIMEOUT)) {
+			waitHelper.click(logoutAndContinueBtn, FrameworkConstants.MEDIUM_TIMEOUT);
 		}
 	}
 
-	@FindBy(xpath = "//a[contains(@class,'cta-big') and normalize-space()='Get Data']")
+	@FindBy(xpath = "//button[normalize-space()='Get Data']")
 	private WebElement getDataBtn;
 
+	@Step("Click Get Data button")
 	public void clickGetDataButton() {
-		waitHelper.click(getDataBtn, 10);
+		waitHelper.click(getDataBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
-	@FindBy(xpath = "(//span[normalize-space()='Go to IMP'])[1]")
+	@FindBy(xpath = "//a[contains(@class,'advisory-nav-link') and contains(normalize-space(),'Go to IMP')]")
 	private WebElement goToImpBtn;
 
+	@Step("Click Go to IMP")
 	public void clickGoToImp() {
-		waitHelper.click(goToImpBtn, 10);
+		waitHelper.click(goToImpBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
-	private static final By CLIENT_OTP_FIELDS = By.xpath("//div[contains(@class,'advisor-client-otp-wrapper')]//input[starts-with(@id,'otp-field')]");
+	private static final By CLIENT_OTP_BY = By.xpath("//div[contains(@class,'advisor-client-otp-wrapper')]//input[starts-with(@id,'otp-field')]");
 
 	@FindBy(xpath = "//div[contains(@class,'advisor-client-otp-wrapper')]//input[starts-with(@id,'otp-field')]")
 	private List<WebElement> clientOtpFields;
 
-	@FindBy(xpath = "//a[@type='button' and normalize-space()='Submit']")
+	@FindBy(xpath = "//div[contains(@class,'advisor-client-otp-wrapper')]//a[normalize-space()='Submit']")
 	private WebElement clientOtpSubmitBtn;
 
+	@Step("Submit client OTP")
 	public void submitClientOtp() {
-		waitHelper.click(clientOtpSubmitBtn, 10);
+		waitHelper.click(clientOtpSubmitBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
+	@Step("Login to IMP application")
 	public void loginToApplication() {
-		waitHelper.waitForVisibility(userID, 10).sendKeys(ConfigReader.get("auth.user.id"));
-		waitHelper.waitForVisibility(password, 10).sendKeys(ConfigReader.get("auth.user.password"));
-		clickLoginButton();
-		fillOTP(advisorOtpFields, ConfigReader.get("auth.otp"), OTP_FIELDS);
-		clickSubmitButton();
-		clickLogoutAndContinueIfPresent();
-		clickOnIapImp();
-		clientCodeInput.sendKeys(ConfigReader.get("auth.client.code"));
-		clickGetDataButton();
-		clickGoToImp();
-		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_FIELDS);
-		submitClientOtp();
+		loginToApplication(
+				ConfigReader.get("auth.user.id"),
+				ConfigReader.get("auth.user.password"),
+				ConfigReader.get("auth.client.code")
+		);
 	}
 
+	@Step("Login to IMP application as {advisorId} for client {clientCode}")
 	public void loginToApplication(String advisorId, String advisorPassword, String clientCode) {
-		waitHelper.waitForVisibility(userID, 10).sendKeys(advisorId);
-		waitHelper.waitForVisibility(password, 10).sendKeys(advisorPassword);
+		waitHelper.waitForVisibility(userID, FrameworkConstants.DEFAULT_TIMEOUT).sendKeys(advisorId);
+		waitHelper.waitForVisibility(password, FrameworkConstants.DEFAULT_TIMEOUT).sendKeys(advisorPassword);
 		clickLoginButton();
-		fillOTP(advisorOtpFields, ConfigReader.get("auth.otp"), OTP_FIELDS);
+		fillOTP(advisorOtpFields, ConfigReader.get("auth.otp"), ADVISOR_OTP_BY);
 		clickSubmitButton();
 		clickLogoutAndContinueIfPresent();
 		clickOnIapImp();
-		clientCodeInput.sendKeys(clientCode);
+		waitHelper.waitForVisibility(clientCodeInput, FrameworkConstants.DEFAULT_TIMEOUT).sendKeys(clientCode);
 		clickGetDataButton();
 		clickGoToImp();
-		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_FIELDS);
+		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_BY);
 		submitClientOtp();
 	}
 

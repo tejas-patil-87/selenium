@@ -65,7 +65,8 @@ public class ExcelDataReader {
 	private static void validateTestData() {
 		String[] requiredKeys = {"app.page.title", "product.new", "product.code", "product.min.investment"};
 		for (String key : requiredKeys) {
-			if (data.get(key) == null || data.get(key).isEmpty()) {
+			String val = data.get(key);
+			if (val == null || val.isEmpty()) {
 				throw new RuntimeException("Missing required test data key: " + key);
 			}
 		}
@@ -89,6 +90,7 @@ public class ExcelDataReader {
 
 			for (int i = 1; i <= rowCount; i++) {
 				Row row = sheet.getRow(i);
+				if (row == null) continue;
 				for (int j = 0; j < colCount; j++) {
 					clientData[i - 1][j] = getCellValueAsString(row.getCell(j));
 				}
