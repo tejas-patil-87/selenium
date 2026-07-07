@@ -101,6 +101,17 @@ public class LoginPage extends BasePage {
 		waitHelper.click(clientOtpSubmitBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
+	@Step("Enter next client code on Motilal Oswal tab: {clientCode}")
+	public void enterNextClient(String clientCode) {
+		WebElement input = waitHelper.waitForVisibility(clientCodeInput, FrameworkConstants.DEFAULT_TIMEOUT);
+		input.clear();
+		input.sendKeys(clientCode);
+		clickGetDataButton();
+		clickGoToImp();
+		fillOTP(clientOtpFields, ConfigReader.get("auth.otp"), CLIENT_OTP_BY);
+		submitClientOtp();
+	}
+
 	@Step("Login to IMP application")
 	public void loginToApplication() {
 		loginToApplication(

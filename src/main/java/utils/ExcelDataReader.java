@@ -1,7 +1,9 @@
 package utils;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -73,6 +75,25 @@ public class ExcelDataReader {
 		String minInvestment = data.get("product.min.investment");
 		if (minInvestment != null && !minInvestment.contains("\u20B9")) {
 			log.warn("product.min.investment may have wrong format: {}", minInvestment);
+		}
+	}
+
+	public static String[] getBulkClientCodes() {
+		try (java.io.FileInputStream fis = new java.io.FileInputStream("src/main/resources/testdata.xlsx");
+				Workbook workbook = new XSSFWorkbook(fis)) {
+			Sheet sheet = workbook.getSheet("BulkClients");
+			if (sheet == null) throw new RuntimeException("Sheet 'BulkClients' not found in testdata.xlsx");
+			List<String> codes = new ArrayList<>();
+			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+				Row row = sheet.getRow(i);
+				if (row == null) continue;
+				String code = getCellValueAsString(row.getCell(0));
+				if (!code.isEmpty()) codes.add(code);
+			}
+			log.info("BulkClients loaded: {} total client codes available", codes.size());
+			return codes.toArray(new String[0]);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to load BulkClients sheet: " + e.getMessage(), e);
 		}
 	}
 

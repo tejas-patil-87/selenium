@@ -77,6 +77,14 @@ public class DriverFactory {
 		}
 	}
 
+	public static void setDriver(WebDriver driver) {
+		driverThreadLocal.set(driver);
+	}
+
+	public static void removeDriver() {
+		driverThreadLocal.remove();
+	}
+
 	public static WebDriver createDriver() {
 		WebDriver driver = createBrowser();
 		launchApp(driver);

@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,24 +35,25 @@ public class DBUtils {
 	}
 
 	public static void cleanOtpData() {
-		String userId = ConfigReader.get("auth.user.id");
-		String clientCode = ConfigReader.get("auth.client.code");
-		String productCode = ExcelDataReader.get("product.code");
+		cleanOtpData(ConfigReader.get("auth.user.id"), ConfigReader.get("auth.client.code"), ExcelDataReader.get("product.code"));
+	}
+
+	public static void cleanOtpData(String advisorId, String clientCode, String productCode) {
 		try (
 			Connection conn = getConnection();
 			PreparedStatement ps1 = conn.prepareStatement("DELETE FROM MOSLAdvisioryAdminDB..tbl_OTPLogForLoginAdvisor WHERE UserId=?");
 			PreparedStatement ps2 = conn.prepareStatement("DELETE FROM MOSLAdvisioryAdminDB..tbl_OTPLogForLoginClient WHERE UserId=? AND ClientCode=?");
 			PreparedStatement ps3 = conn.prepareStatement("DELETE FROM MOSLACEAdvisioryDB..tbl_OTPLogs WHERE ClientCode=? AND ProductCode=? AND RequestType='INVESTMENT'")
 		) {
-			ps1.setString(1, userId);
+			ps1.setString(1, advisorId);
 			ps1.executeUpdate();
-			ps2.setString(1, userId);
+			ps2.setString(1, advisorId);
 			ps2.setString(2, clientCode);
 			ps2.executeUpdate();
 			ps3.setString(1, clientCode);
 			ps3.setString(2, productCode);
 			ps3.executeUpdate();
-			log.info("OTP data cleaned successfully for UserId={}, ClientCode={}, ProductCode={}", userId, clientCode, productCode);
+			log.info("OTP data cleaned for AdvisorId={}, ClientCode={}, ProductCode={}", advisorId, clientCode, productCode);
 		} catch (SQLException e) {
 			throw new RuntimeException("OTP cleanup failed", e);
 		}
@@ -85,6 +88,112 @@ public class DBUtils {
 
 	public static void cleanClientData() {
 		cleanClientData(ConfigReader.get("auth.client.code"), ExcelDataReader.get("product.code"));
+	}
+
+	public static void executeVendorResponseUpdate(String clientCode, String productCode) {
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"EXEC MOSLACEAdvisioryDB..usp_UpdateOrderDataFromVendorResponse_UAT @ClientCode = ?, @ProductCode = ?")) {
+			ps.setString(1, clientCode);
+			ps.setString(2, productCode);
+			ps.execute();
+			log.info("Vendor response SP executed for ClientCode={}, ProductCode={}", clientCode, productCode);
+		} catch (SQLException e) {
+			throw new RuntimeException("Failed to execute vendor response SP for ClientCode=" + clientCode, e);
+		}
+	}
+
+	public static String getProductName(String productCode) {
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"SELECT ProductName FROM MOSLACEAdvisioryDB..tbl_ProductsCodesList WHERE ProductCode = ?")) {
+			ps.setString(1, productCode);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return rs.getString("ProductName");
+				throw new RuntimeException("No product found for ProductCode=" + productCode);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("Failed to fetch product name for ProductCode=" + productCode, e);
+		}
+	}
+
+	public static int getMinInvestmentAmount(String productCode) {
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"SELECT MinInvestmentAmount FROM MOSLACEAdvisioryDB..tbl_ApplicationConfiguration WHERE ProductCode = ?")) {
+			ps.setString(1, productCode);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return rs.getBigDecimal("MinInvestmentAmount").intValue();
+				throw new RuntimeException("No config found for ProductCode=" + productCode);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("Failed to fetch min investment for ProductCode=" + productCode, e);
+		}
+	}
+
+	public static String[] getClientAdviceStatus(String clientCode, String productCode) {
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"SELECT TOP 1 IsBatchIdPushed, BatchIdStatus FROM ReStockDev..ClientAdvice "
+						+ "WHERE ClientCode = ? AND ProductCode = ? ORDER BY CreatedOn DESC")) {
+			ps.setString(1, clientCode);
+			ps.setString(2, productCode);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) return new String[] { String.valueOf(rs.getInt("IsBatchIdPushed")), rs.getString("BatchIdStatus") };
+				return new String[] { "N/A", "N/A" };
+			}
+		} catch (SQLException e) {
+			log.warn("Failed to fetch ClientAdvice for ClientCode={}, ProductCode={}: {}", clientCode, productCode, e.getMessage());
+			return new String[] { "ERROR", "ERROR" };
+		}
+	}
+
+	public static String getOrderConfirmationStatus(String clientCode, String productCode) {
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"SELECT TOP 1 IsConfirmed FROM MOSLACEAdvisioryDB..tbl_OrderReqSummary "
+						+ "WHERE ClientCode = ? AND ProductCode = ? ORDER BY CreatedDate DESC")) {
+			ps.setString(1, clientCode);
+			ps.setString(2, productCode);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					String isConfirmed = rs.getString("IsConfirmed");
+					log.info("OrderReqSummary IsConfirmed={} for ClientCode={}, ProductCode={}", isConfirmed, clientCode, productCode);
+					return isConfirmed != null ? isConfirmed.trim() : "N/A";
+				}
+				log.warn("No OrderReqSummary row found for ClientCode={}, ProductCode={}", clientCode, productCode);
+				return "N/A";
+			}
+		} catch (SQLException e) {
+			log.warn("Failed to fetch OrderReqSummary for ClientCode={}, ProductCode={}: {}", clientCode, productCode, e.getMessage());
+			return "ERROR";
+		}
+	}
+
+	public static List<String[]> fetchBulkClients(String productCode, int limit) {
+		List<String[]> rows = new ArrayList<>();
+		String sql = "EXEC [MOSLACEAdvisioryDB].[dbo].[usp_GetNewClientsForProduct_UAT] @ProductCode = ?";
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, productCode);
+			try (ResultSet rs = ps.executeQuery()) {
+				int count = 0;
+				while (rs.next() && count < limit) {
+					rows.add(new String[] {
+							rs.getString("ClientCode"),
+							rs.getString("DOB"),
+							rs.getString("FormattedDOB"),
+							rs.getString("ClientType"),
+							rs.getString("POAStatus")
+					});
+					count++;
+				}
+			}
+			log.info("Fetched {} bulk clients for ProductCode={}", rows.size(), productCode);
+			return rows;
+		} catch (SQLException e) {
+			throw new RuntimeException("Failed to fetch bulk clients for ProductCode=" + productCode, e);
+		}
 	}
 
 	public static void cleanClientData(String clientCode, String productCode) {
