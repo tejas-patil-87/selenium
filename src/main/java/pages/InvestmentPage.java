@@ -271,7 +271,7 @@ public class InvestmentPage extends BasePage {
 
 	private static final By PAGINATION_NEXT_BY = By.xpath("//div[contains(@class,'pagination-with-count')]//a[normalize-space()='Next' and not(contains(@class,'disable'))]");
 
-	private static final By SEND_OTP_BTN_BY = By.xpath("//a[contains(@class,'confirmOrderCTa')]");
+	private static final By SEND_OTP_BTN_BY = By.xpath("//div[contains(@class,'slick-current') and not(contains(@class,'slick-cloned'))]//a[contains(@class,'confirmOrderCTa')]");
 
 	private static final By ADVICE_OTP_POPUP_BY = By.xpath("//div[contains(@class,'ria-innerbox') and contains(@class,'oto-innerbox')]");
 
@@ -383,24 +383,15 @@ public class InvestmentPage extends BasePage {
 	@Step("Click Send OTP for advice confirmation")
 	public void clickSendAdviceOtp() {
 		List<WebElement> sendOtpButtons = driver.findElements(SEND_OTP_BTN_BY);
-		investLog.info("[CONFIRM_ORDERS] Total Send OTP buttons found: {}", sendOtpButtons.size());
-		WebElement visibleBtn = null;
-		for (WebElement btn : sendOtpButtons) {
-			investLog.info("[CONFIRM_ORDERS] Send OTP btn — displayed={}, outerHTML={}", btn.isDisplayed(), btn.getAttribute("outerHTML"));
-			if (btn.isDisplayed()) {
-				visibleBtn = btn;
-				break;
-			}
+		investLog.info("[CONFIRM_ORDERS] Send OTP buttons in active slide: {}", sendOtpButtons.size());
+		if (sendOtpButtons.isEmpty()) {
+			investLog.warn("[CONFIRM_ORDERS] No Send OTP button found in active slide — locator: {}", SEND_OTP_BTN_BY);
+			return;
 		}
-		if (visibleBtn != null) {
-			investLog.info("[CONFIRM_ORDERS] Clicking VISIBLE Send OTP button");
-			TestUtils.clickWithJS(driver, visibleBtn);
-		} else {
-			// all buttons hidden — scroll to first one and force click
-			investLog.warn("[CONFIRM_ORDERS] No visible Send OTP button — scrolling to first and force clicking");
-			((org.openqa.selenium.JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", sendOtpButtons.get(0));
-			TestUtils.clickWithJS(driver, sendOtpButtons.get(0));
-		}
+		WebElement btn = sendOtpButtons.get(0);
+		investLog.info("[CONFIRM_ORDERS] Send OTP btn — displayed={}, outerHTML={}", btn.isDisplayed(), btn.getAttribute("outerHTML"));
+		investLog.info("[CONFIRM_ORDERS] Clicking Send OTP in active product slide");
+		TestUtils.clickWithJS(driver, btn);
 	}
 
 	@Step("Fill advice OTP")

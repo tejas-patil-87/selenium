@@ -77,7 +77,7 @@ public class TestUtils {
 	}
 
 	public static void cleanLogFiles() {
-		cleanDirectory(FrameworkConstants.LOG_DIR, f -> true, "Log");
+		cleanDirectory(FrameworkConstants.LOG_DIR, f -> !f.getName().equals("bulk-investment-logs.xlsx"), "Log");
 	}
 
 	public static void cleanAllureResults() {
