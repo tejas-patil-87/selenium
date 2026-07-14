@@ -171,14 +171,16 @@ public class DBUtils {
 	}
 
 	public static List<String[]> fetchBulkClients(String productCode, int limit) {
+		String advisorId = ConfigReader.get("auth.user.id");
 		List<String[]> rows = new ArrayList<>();
-		String sql = "EXEC [MOSLACEAdvisioryDB].[dbo].[usp_GetNewClientsForProduct_UAT] @ProductCode = ?";
+		String sql = "EXEC [MOSLACEAdvisioryDB].[dbo].[usp_GetNewClientsForProduct_UAT] @ProductCode = ?, @AdvisorId = ?, @Limit = ?";
 		try (Connection conn = getConnection();
 				PreparedStatement ps = conn.prepareStatement(sql)) {
 			ps.setString(1, productCode);
+			ps.setString(2, advisorId);
+			ps.setInt(3, limit);
 			try (ResultSet rs = ps.executeQuery()) {
-				int count = 0;
-				while (rs.next() && count < limit) {
+				while (rs.next()) {
 					rows.add(new String[] {
 							rs.getString("ClientCode"),
 							rs.getString("DOB"),
@@ -186,13 +188,26 @@ public class DBUtils {
 							rs.getString("ClientType"),
 							rs.getString("POAStatus")
 					});
-					count++;
 				}
 			}
-			log.info("Fetched {} bulk clients for ProductCode={}", rows.size(), productCode);
+			log.info("Fetched {} bulk clients for AdvisorId={}, ProductCode={}", rows.size(), advisorId, productCode);
 			return rows;
 		} catch (SQLException e) {
 			throw new RuntimeException("Failed to fetch bulk clients for ProductCode=" + productCode, e);
+		}
+	}
+
+	public static void releaseBulkRunLocks(String productCode) {
+		String advisorId = ConfigReader.get("auth.user.id");
+		try (Connection conn = getConnection();
+				PreparedStatement ps = conn.prepareStatement(
+						"EXEC [MOSLACEAdvisioryDB].[dbo].[usp_ReleaseBulkRunLocks] @ProductCode = ?, @AdvisorId = ?")) {
+			ps.setString(1, productCode);
+			ps.setString(2, advisorId);
+			ps.execute();
+			log.info("Bulk run locks released for AdvisorId={}, ProductCode={}", advisorId, productCode);
+		} catch (SQLException e) {
+			log.warn("Failed to release bulk run locks for AdvisorId={}, ProductCode={}: {}", advisorId, productCode, e.getMessage());
 		}
 	}
 

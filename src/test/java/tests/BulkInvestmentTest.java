@@ -87,6 +87,7 @@ public class BulkInvestmentTest {
 
 	@AfterSuite(alwaysRun = true)
 	public void afterSuite() {
+		DBUtils.releaseBulkRunLocks(productCode);
 		if (driver != null) {
 			DriverFactory.quitDriver(driver);
 			DriverFactory.removeDriver();
