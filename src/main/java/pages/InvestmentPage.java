@@ -327,7 +327,7 @@ public class InvestmentPage extends BasePage {
 		utils.TestUtils.fillOTP(inputs, ConfigReader.get("auth.otp"));
 		clickVerifyAdviceOtp();
 
-		boolean dismissed = !waitHelper.isElementVisible(CONFIRM_ORDERS_POPUP_BY, FrameworkConstants.LONG_TIMEOUT);
+		boolean dismissed = !waitHelper.isElementVisible(CONFIRM_ORDERS_POPUP_BY, FrameworkConstants.MEDIUM_TIMEOUT);
 		if (!dismissed) {
 			investLog.warn("[ADVICE] Popup still visible after Verify OTP — OTP rejected");
 		}
@@ -354,20 +354,11 @@ public class InvestmentPage extends BasePage {
 	@Step("Click Send OTP for advice confirmation")
 	public void clickSendAdviceOtp() {
 		List<WebElement> found = driver.findElements(SEND_OTP_BTN_BY);
-		investLog.info("[ADVICE] Send OTP elements in DOM: {}", found.size());
-		for (int i = 0; i < found.size(); i++) {
-			WebElement btn = found.get(i);
-			String ancestorInfo = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
-				"var el = arguments[0]; var info = ''; var depth = 0;" +
-				"while (el && depth < 8) {" +
-				"  var s = window.getComputedStyle(el);" +
-				"  info += '[' + depth + '] tag=' + el.tagName + ' class=' + (el.className||'') +" +
-				"    ' display=' + s.display + ' visibility=' + s.visibility + ' opacity=' + s.opacity + ' | ';" +
-				"  el = el.parentElement; depth++;" +
-				"} return info;", btn);
-			investLog.info("[ADVICE] btn[{}] ancestor chain: {}", i, ancestorInfo);
+		if (found.isEmpty()) {
+			investLog.warn("[ADVICE] Send OTP button not found in DOM");
+			return;
 		}
-		// click the one that is actually displayed
+		// JS ancestor walk — finds the button not covered by an overlay
 		WebElement toClick = null;
 		for (WebElement btn : found) {
 			Boolean visible = (Boolean) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
@@ -383,7 +374,7 @@ public class InvestmentPage extends BasePage {
 			}
 		}
 		if (toClick == null) {
-			investLog.warn("[ADVICE] No visible Send OTP button found after ancestor check — JS clicking first one");
+			investLog.warn("[ADVICE] No fully visible Send OTP button found — JS clicking first one");
 			toClick = found.get(0);
 		}
 		TestUtils.clickWithJS(driver, toClick);
