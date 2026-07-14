@@ -265,13 +265,16 @@ public class InvestmentPage extends BasePage {
 
 	/* ================= Confirm Orders / Advice Flow ================= */
 
-	private static final By CONFIRM_ORDERS_POPUP_BY = By.xpath("//div[contains(@class,'rec-advisorbox')]");
+	// Confirm Orders popup — root container now has data-testid="advice-modal-box"
+	private static final By CONFIRM_ORDERS_POPUP_BY = By.xpath("//div[@data-testid='advice-modal-box']");
 
-	private static final By PRODUCT_NAME_IN_ADVICE_BY = By.xpath("//div[contains(@class,'slick-current') and not(contains(@class,'slick-cloned'))]//h5[contains(@class,'f14') and contains(@class,'white')]");
+	// Product name inside desktop slick slider — dev added data-testid="product-name"
+	private static final By PRODUCT_NAME_IN_ADVICE_BY = By.xpath("//div[contains(@class,'hideonmobile')]//div[contains(@class,'slick-current') and not(contains(@class,'slick-cloned'))]//*[@data-testid='product-name']");
 
 	private static final By PAGINATION_NEXT_BY = By.xpath("//div[contains(@class,'pagination-with-count')]//a[normalize-space()='Next' and not(contains(@class,'disable'))]");
 
-	private static final By SEND_OTP_BTN_BY = By.xpath("//div[contains(@class,'slick-current') and not(contains(@class,'slick-cloned'))]//a[contains(@class,'confirmOrderCTa')]");
+	// Send OTP button is outside the carousel — inside hideonmobile action-btns-group, dev added data-testid="send-otp-btn"
+	private static final By SEND_OTP_BTN_BY = By.xpath("//div[contains(@class,'hideonmobile')]//a[@data-testid='send-otp-btn']");
 
 	private static final By ADVICE_OTP_POPUP_BY = By.xpath("//div[contains(@class,'ria-innerbox') and contains(@class,'oto-innerbox')]");
 
@@ -287,13 +290,9 @@ public class InvestmentPage extends BasePage {
 
 	@Step("Check if Confirm Orders popup is present in DOM")
 	public boolean isConfirmOrdersPopupPresent() {
-		// use presenceOfElementLocated — popup container may be in DOM but not "visible"
-		// by Selenium standards (e.g. zero opacity, hidden parent). Visibility check
-		// returns false even when popup is actually there.
 		try {
 			new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(FrameworkConstants.SHORT_TIMEOUT))
 					.until(org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(CONFIRM_ORDERS_POPUP_BY));
-			investLog.info("[CONFIRM_ORDERS] Popup present in DOM — locator: {}", CONFIRM_ORDERS_POPUP_BY);
 			return true;
 		} catch (org.openqa.selenium.TimeoutException e) {
 			return false;
@@ -307,53 +306,30 @@ public class InvestmentPage extends BasePage {
 		if (!isConfirmOrdersPopupPresent()) {
 			return false;
 		}
-		investLog.info("[CONFIRM_ORDERS] Popup detected — locator: {}", CONFIRM_ORDERS_POPUP_BY);
 
-		boolean productFound = findAndNavigateToProduct(productName);
-		if (!productFound) {
-			investLog.warn("[CONFIRM_ORDERS] Product '{}' not found in advice carousel — locator used: {}", productName, PRODUCT_NAME_IN_ADVICE_BY);
+		if (!findAndNavigateToProduct(productName)) {
+			investLog.warn("[ADVICE] Product '{}' not found in carousel", productName);
 			return false;
 		}
-		investLog.info("[CONFIRM_ORDERS] Product '{}' found in advice carousel", productName);
 
-		// log Send OTP button state before clicking
-		List<WebElement> sendOtpEls = driver.findElements(SEND_OTP_BTN_BY);
-		investLog.info("[CONFIRM_ORDERS] Send OTP elements found in DOM: {} — locator: {}", sendOtpEls.size(), SEND_OTP_BTN_BY);
-		if (!sendOtpEls.isEmpty()) {
-			WebElement sendOtpEl = sendOtpEls.get(0);
-			investLog.info("[CONFIRM_ORDERS] Send OTP outerHTML: {}", sendOtpEl.getAttribute("outerHTML"));
-			investLog.info("[CONFIRM_ORDERS] Send OTP displayed={}, enabled={}", sendOtpEl.isDisplayed(), sendOtpEl.isEnabled());
-		} else {
-			investLog.warn("[CONFIRM_ORDERS] Send OTP button NOT found in DOM — locator: {}", SEND_OTP_BTN_BY);
-		}
-		investLog.info("[CONFIRM_ORDERS] Clicking Send OTP — locator: {}", SEND_OTP_BTN_BY);
 		clickSendAdviceOtp();
 
-		investLog.info("[CONFIRM_ORDERS] Waiting for OTP input popup — locator: {}", ADVICE_OTP_POPUP_BY);
-		boolean otpPopupVisible = waitHelper.isElementVisible(ADVICE_OTP_POPUP_BY, FrameworkConstants.LONG_TIMEOUT);
-		if (!otpPopupVisible) {
-			investLog.warn("[CONFIRM_ORDERS] OTP input popup did NOT appear after Send OTP click — locator: {}", ADVICE_OTP_POPUP_BY);
+		if (!waitHelper.isElementVisible(ADVICE_OTP_POPUP_BY, FrameworkConstants.LONG_TIMEOUT)) {
+			investLog.warn("[ADVICE] OTP popup did not appear after Send OTP click");
 			return false;
 		}
-		investLog.info("[CONFIRM_ORDERS] OTP input popup visible — filling OTP inputs — locator: {}", ADVICE_OTP_INPUTS_BY);
 
 		List<WebElement> inputs = driver.findElements(ADVICE_OTP_INPUTS_BY);
-		investLog.info("[CONFIRM_ORDERS] OTP input boxes found: {}", inputs.size());
 		if (inputs.isEmpty()) {
-			investLog.warn("[CONFIRM_ORDERS] No OTP input boxes found — locator: {}", ADVICE_OTP_INPUTS_BY);
+			investLog.warn("[ADVICE] OTP input boxes not found");
 			return false;
 		}
 		utils.TestUtils.fillOTP(inputs, ConfigReader.get("auth.otp"));
-		investLog.info("[CONFIRM_ORDERS] OTP filled — clicking Verify OTP — locator: {}", VERIFY_ADVICE_OTP_BTN_BY);
-
 		clickVerifyAdviceOtp();
 
-		// verify popup dismissed — OTP accepted
 		boolean dismissed = !waitHelper.isElementVisible(CONFIRM_ORDERS_POPUP_BY, FrameworkConstants.LONG_TIMEOUT);
 		if (!dismissed) {
-			investLog.warn("[CONFIRM_ORDERS] Popup still visible after Verify OTP — OTP may have been rejected — locator: {}", CONFIRM_ORDERS_POPUP_BY);
-		} else {
-			investLog.info("[CONFIRM_ORDERS] Popup dismissed — OTP accepted successfully");
+			investLog.warn("[ADVICE] Popup still visible after Verify OTP — OTP rejected");
 		}
 		return dismissed;
 	}
@@ -361,18 +337,13 @@ public class InvestmentPage extends BasePage {
 	@Step("Navigate to correct product advice: {productName}")
 	public boolean findAndNavigateToProduct(String productName) {
 		for (int page = 1; page <= 10; page++) {
-			List<WebElement> nameEls = driver.findElements(PRODUCT_NAME_IN_ADVICE_BY);
-			investLog.info("[CONFIRM_ORDERS] Page {} — found {} product name elements — locator: {}", page, nameEls.size(), PRODUCT_NAME_IN_ADVICE_BY);
-			for (WebElement el : nameEls) {
+			for (WebElement el : driver.findElements(PRODUCT_NAME_IN_ADVICE_BY)) {
 				String text = el.getAttribute("textContent");
-				investLog.info("[CONFIRM_ORDERS] Product name in carousel: '{}'", text == null ? "null" : text.trim());
 				if (text != null && text.trim().equalsIgnoreCase(productName)) {
 					return true;
 				}
 			}
-			boolean nextVisible = waitHelper.isElementVisible(PAGINATION_NEXT_BY, FrameworkConstants.SHORT_TIMEOUT);
-			investLog.info("[CONFIRM_ORDERS] Pagination Next visible={} — locator: {}", nextVisible, PAGINATION_NEXT_BY);
-			if (!nextVisible) {
+			if (!waitHelper.isElementVisible(PAGINATION_NEXT_BY, FrameworkConstants.SHORT_TIMEOUT)) {
 				break;
 			}
 			waitHelper.click(PAGINATION_NEXT_BY, FrameworkConstants.MEDIUM_TIMEOUT);
@@ -382,16 +353,40 @@ public class InvestmentPage extends BasePage {
 
 	@Step("Click Send OTP for advice confirmation")
 	public void clickSendAdviceOtp() {
-		List<WebElement> sendOtpButtons = driver.findElements(SEND_OTP_BTN_BY);
-		investLog.info("[CONFIRM_ORDERS] Send OTP buttons in active slide: {}", sendOtpButtons.size());
-		if (sendOtpButtons.isEmpty()) {
-			investLog.warn("[CONFIRM_ORDERS] No Send OTP button found in active slide — locator: {}", SEND_OTP_BTN_BY);
-			return;
+		List<WebElement> found = driver.findElements(SEND_OTP_BTN_BY);
+		investLog.info("[ADVICE] Send OTP elements in DOM: {}", found.size());
+		for (int i = 0; i < found.size(); i++) {
+			WebElement btn = found.get(i);
+			String ancestorInfo = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+				"var el = arguments[0]; var info = ''; var depth = 0;" +
+				"while (el && depth < 8) {" +
+				"  var s = window.getComputedStyle(el);" +
+				"  info += '[' + depth + '] tag=' + el.tagName + ' class=' + (el.className||'') +" +
+				"    ' display=' + s.display + ' visibility=' + s.visibility + ' opacity=' + s.opacity + ' | ';" +
+				"  el = el.parentElement; depth++;" +
+				"} return info;", btn);
+			investLog.info("[ADVICE] btn[{}] ancestor chain: {}", i, ancestorInfo);
 		}
-		WebElement btn = sendOtpButtons.get(0);
-		investLog.info("[CONFIRM_ORDERS] Send OTP btn — displayed={}, outerHTML={}", btn.isDisplayed(), btn.getAttribute("outerHTML"));
-		investLog.info("[CONFIRM_ORDERS] Clicking Send OTP in active product slide");
-		TestUtils.clickWithJS(driver, btn);
+		// click the one that is actually displayed
+		WebElement toClick = null;
+		for (WebElement btn : found) {
+			Boolean visible = (Boolean) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+				"var el = arguments[0];" +
+				"while (el) {" +
+				"  var s = window.getComputedStyle(el);" +
+				"  if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false;" +
+				"  el = el.parentElement;" +
+				"} return true;", btn);
+			if (Boolean.TRUE.equals(visible)) {
+				toClick = btn;
+				break;
+			}
+		}
+		if (toClick == null) {
+			investLog.warn("[ADVICE] No visible Send OTP button found after ancestor check — JS clicking first one");
+			toClick = found.get(0);
+		}
+		TestUtils.clickWithJS(driver, toClick);
 	}
 
 	@Step("Fill advice OTP")

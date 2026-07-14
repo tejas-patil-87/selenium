@@ -22,14 +22,14 @@ public class BulkInvestmentLogger {
 	private static final String LOG_FILE = "logs/bulk-investment-logs.xlsx";
 	private static final String SHEET_NAME = "BulkInvestmentLogs";
 	private static final String[] HEADERS = { "ClientCode", "ProductCode", "InvestmentAmount",
-			"SubscriptionVerified", "IsConfirmed", "Timestamp" };
+			"SubscriptionVerified", "AdviceStatus", "IsConfirmed", "Timestamp" };
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 
 	private BulkInvestmentLogger() {
 	}
 
 	public static synchronized void log(String clientCode, String productCode, String investmentAmount,
-			boolean subscriptionVerified, String isConfirmed) {
+			boolean subscriptionVerified, String adviceStatus, String isConfirmed) {
 		try {
 			Workbook workbook;
 			File file = new File(LOG_FILE);
@@ -55,14 +55,14 @@ public class BulkInvestmentLogger {
 			row.createCell(1).setCellValue(productCode);
 			row.createCell(2).setCellValue(investmentAmount);
 			row.createCell(3).setCellValue(subscriptionVerified ? "YES" : "NO");
-			row.createCell(4).setCellValue(isConfirmed);
-			row.createCell(5).setCellValue(LocalDateTime.now().format(FORMATTER));
+			row.createCell(4).setCellValue(adviceStatus);
+			row.createCell(5).setCellValue(isConfirmed);
+			row.createCell(6).setCellValue(LocalDateTime.now().format(FORMATTER));
 
 			try (FileOutputStream fos = new FileOutputStream(file)) {
 				workbook.write(fos);
 			}
 			workbook.close();
-			log.info("Logged bulk investment for ClientCode={}, ProductCode={}", clientCode, productCode);
 		} catch (Exception e) {
 			log.error("Failed to write bulk investment log for ClientCode={}: {}", clientCode, e.getMessage(), e);
 		}

@@ -77,6 +77,7 @@ db.trustServerCertificate=true
 - `src/main/resources/testdata.xlsx` should already exist
 - Sheet **"TestData"** — product info, expected values
 - Sheet **"Clients"** — multi-client test data
+- Sheet **"BulkClients"** — auto-generated before each bulk run by `BulkClientFetcher`
 
 ### 7. Output Directories (Auto-Created)
 
@@ -88,6 +89,7 @@ No manual setup needed — all directories are created automatically by the fram
 | `reports/screenshots/` | `TestUtils.cleanScreenshotDirectory()` | Created if missing, cleaned before each run |
 | `screenshotzip/` | `TestUtils.deleteAllZipFiles()` | Created if missing, old ZIPs cleaned before each run |
 | `logs/` | `TestUtils.cleanLogFiles()` | Created if missing, old logs cleaned before each run |
+| `logs/bulk-investment-logs.xlsx` | `BulkInvestmentLogger` | Preserved across runs — never deleted |
 | `allure-results/` | `TestUtils.cleanAllureResults()` | Cleaned before each run for fresh Allure report |
 
 ---
@@ -103,6 +105,17 @@ No manual setup needed — all directories are created automatically by the fram
 
 ### Multi-Client Investment Test
 - Right-click `testng-multiclient.xml` → **Run As → TestNG Suite**
+
+### Bulk Investment Test
+- Right-click `BulkInvestmentTest.java` → **Run As → TestNG Test**
+- Fetches up to `bulk.client.limit` clients from DB, invests for up to `bulk.client.run.limit` clients in a single browser session
+- Configure in `config.properties`:
+
+```properties
+bulk.client.product.code=ME
+bulk.client.limit=50
+bulk.client.run.limit=20
+```
 
 ### Switch Client Code Without Code Change
 ```bash
@@ -121,18 +134,37 @@ No manual setup needed — all directories are created automatically by the fram
 
 | Report | Location |
 |--------|----------|
-| ExtentReport | `reports/IMP-Automation-Report_DD-MM-YYYY_HH-mm-ss.html` |
+| ExtentReport | `reports/IMP-Automation-Report.html` |
 | Allure Results | `allure-results/` |
 | Screenshots | `reports/screenshots/` |
 | ZIP Archives | `screenshotzip/` |
 | Logs | `logs/automation.log` |
+| Bulk Investment Log | `logs/bulk-investment-logs.xlsx` |
 
-> Each run generates a uniquely timestamped ExtentReport. Old reports are cleaned before each run.
+> Each run cleans the old ExtentReport before starting. Bulk investment logs are preserved across runs.
 
 ### View Allure Report
 ```bash
 allure serve allure-results
 ```
+
+### Bulk Investment Log Columns
+
+| Column | Description |
+|--------|-------------|
+| ClientCode | Client code invested for |
+| ProductCode | Product code (e.g. ME) |
+| InvestmentAmount | Amount invested (e.g. ₹5,00,000) |
+| SubscriptionVerified | YES/NO — DB verification result |
+| AdviceStatus | `ACCEPTED` / `NOT_REQUIRED` / `OTP_FAILED` / `N/A` |
+| IsConfirmed | Y/N from `tbl_OrderReqSummary` or error reason |
+| Timestamp | Time of logging |
+
+**AdviceStatus values:**
+- `ACCEPTED` — Confirm Orders popup appeared and OTP was completed
+- `NOT_REQUIRED` — No popup appeared, investment went through directly
+- `OTP_FAILED` — Popup appeared but OTP flow failed
+- `N/A` — Investment failed before reaching advice step
 
 ---
 
@@ -142,18 +174,21 @@ allure serve allure-results
 src/main/java/
   ├── drivers/        # DriverFactory (ThreadLocal WebDriver)
   ├── pages/          # Page Objects (LoginPage, ProductPage, InvestmentPage)
-  └── utils/          # Utilities (ConfigReader, DBUtils, ExcelDataReader, TestUtils, WaitHelper)
+  └── utils/          # ConfigReader, DBUtils, ExcelDataReader, TestUtils, WaitHelper
+                      # BulkClientFetcher, BulkInvestmentLogger, ExecutionSummary
+                      # ExtentManager, EmailUtil, FrameworkConstants
 
 src/test/java/
-  ├── base/           # BaseTest (suite setup/teardown), BaseInvestmentTest (shared login + product flow)
+  ├── base/           # BaseTest, BaseInvestmentTest
   ├── listeners/      # TestListener, RetryAnalyzer, RetryTransformer
-  └── tests/          # Test classes (NewInvestmentTest, InvestmentNegativeTest, MultiClientInvestmentTest)
+  └── tests/          # NewInvestmentTest, InvestmentNegativeTest,
+                      # MultiClientInvestmentTest, BulkInvestmentTest, DBMaintenanceTool
 
 src/main/resources/
-  ├── config.properties              # Browser, URLs, timeouts (safe to commit)
+  ├── config.properties              # Browser, URLs, bulk config (safe to commit)
   ├── credentials.properties         # Auth + DB (GITIGNORED - never commit)
   ├── credentials.properties.template # Template for credentials setup
-  ├── testdata.xlsx                  # Test data (safe to commit)
+  ├── testdata.xlsx                  # TestData + Clients + BulkClients sheets
   ├── email-template.html            # Email HTML template
   └── log4j2.xml                     # Logging config
 ```
@@ -172,6 +207,17 @@ No code changes needed.
 
 ---
 
+## Bulk Investment — How It Works
+
+1. `@BeforeSuite` calls `BulkClientFetcher` which queries DB via `usp_GetNewClientsForProduct_UAT` and writes fresh client list to `testdata.xlsx` → sheet `BulkClients`
+2. Product name and min investment amount are fetched from DB at suite start
+3. Single browser session — advisor logs in once with first client, then switches clients using `enterNextClient()`
+4. For each client: invests → verifies DB subscription → handles Confirm Orders popup if present → calls vendor response SP → checks `IsConfirmed`
+5. Results logged to `logs/bulk-investment-logs.xlsx` per client regardless of pass/fail
+6. Run stops when `bulk.client.run.limit` successful investments are reached
+
+---
+
 ## Common Issues
 
 | Issue | Cause | Fix |
@@ -179,10 +225,12 @@ No code changes needed.
 | `credentials.properties not found` | File missing | Copy template and fill values |
 | `Database connection failed` | Not on VPN | Connect to Motilal Oswal network |
 | `UAT unreachable — HTTP 0` | UAT is down | Wait for UAT to be available |
-| `No such element` on login buttons | UAT UI was updated | Update locators in `LoginPage.java` to match new HTML |
+| `No such element` on login buttons | UAT UI was updated | Update locators in `LoginPage.java` |
 | `testdata.xlsx not found` | File missing from classpath | Check `src/main/resources/` |
 | `Chrome not found` | Chrome not installed | Install Chrome browser |
 | `Cannot find class: tests.NewInvestment` | Eclipse cached old run config | Delete old run config → right-click `testng.xml` → Run As → TestNG Suite |
 | Red errors in Eclipse after import | Maven dependencies not downloaded | Right-click project → Maven → Update Project → Force Update |
 | No "Run As → TestNG Suite" option | TestNG plugin not installed | Help → Eclipse Marketplace → install TestNG for Eclipse |
 | Compilation errors after import | Wrong Java version | Configure JDK 17 in Eclipse Installed JREs |
+| `BulkClientFetcher failed` | DB unreachable or SP missing | Check VPN + verify `usp_GetNewClientsForProduct_UAT` exists |
+| Send OTP button not clickable | `hideonmobile` ancestor hidden | Framework uses JS ancestor walk to find visible button automatically |
