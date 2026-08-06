@@ -5,10 +5,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
+import java.util.Optional;
 import java.util.Properties;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
@@ -42,7 +44,8 @@ public final class EmailUtil {
 			Message message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(fromEmail));
 			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-			message.setSubject("Automation Test Execution Report - " + new SimpleDateFormat("dd-MM-yyyy").format(new Date()));
+			message.setSubject("Automation Test Execution Report - "
+					+ LocalDateTime.now(ZoneId.of("Asia/Kolkata")).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
 
 			MimeBodyPart bodyPart = new MimeBodyPart();
 			bodyPart.setContent(htmlBody, "text/html; charset=UTF-8");
@@ -86,9 +89,10 @@ public final class EmailUtil {
 			log.warn("No ZIP files found in: {}", dirPath);
 			return;
 		}
-		File latest = Arrays.stream(zips).max(Comparator.comparingLong(File::lastModified)).get();
+		Optional<File> latestOpt = Arrays.stream(zips).max(Comparator.comparingLong(File::lastModified));
+		if (!latestOpt.isPresent()) return;
 		MimeBodyPart attachment = new MimeBodyPart();
-		attachment.attachFile(latest);
+		attachment.attachFile(latestOpt.get());
 		multipart.addBodyPart(attachment);
 	}
 
@@ -104,7 +108,8 @@ public final class EmailUtil {
 
 		html = html.replace("{{PROJECT_NAME}}", ConfigReader.get("project.name"));
 		html = html.replace("{{ENV}}", ConfigReader.get("env"));
-		html = html.replace("{{EXECUTION_DATE}}", new SimpleDateFormat("dd-MM-yyyy HH:mm").format(new Date()));
+		html = html.replace("{{EXECUTION_DATE}}", LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
+				.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")));
 		html = html.replace("{{TOTAL_TESTS}}", String.valueOf(ExecutionSummary.getTotalTests()));
 		html = html.replace("{{PASSED}}", String.valueOf(ExecutionSummary.getPassed()));
 		html = html.replace("{{FAILED}}", String.valueOf(ExecutionSummary.getFailed()));

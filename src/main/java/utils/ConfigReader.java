@@ -23,10 +23,12 @@ public class ConfigReader {
 				return;
 			}
 			prop.load(input);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to load " + fileName + ": " + e.getMessage());
+		} catch (java.io.IOException e) {
+			throw new IllegalStateException("Failed to load " + fileName + ": " + e.getMessage(), e);
 		}
 	}
+
+	private ConfigReader() {}
 
 	public static String get(String key) {
 		// Priority: System property > Environment variable > properties file

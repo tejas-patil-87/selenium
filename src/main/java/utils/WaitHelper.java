@@ -74,7 +74,6 @@ public class WaitHelper {
 		return child.getText().trim();
 	}
 
-
 	public boolean isElementVisible(By locator, int timeoutSeconds) {
 		try {
 			getWait(timeoutSeconds).until(ExpectedConditions.visibilityOfElementLocated(locator));
@@ -123,10 +122,10 @@ public class WaitHelper {
 
 	/* ================= Custom Methods ================= */
 	public boolean waitForTabAndSwitchByTitle(String expectedTitle, int timeoutSeconds) {
-		return getWait(timeoutSeconds).until(driver -> {
-			for (String window : driver.getWindowHandles()) {
-				driver.switchTo().window(window);
-				if (driver.getTitle().equalsIgnoreCase(expectedTitle)) {
+		return getWait(timeoutSeconds).until(d -> {
+			for (String window : d.getWindowHandles()) {
+				d.switchTo().window(window);
+				if (d.getTitle().equalsIgnoreCase(expectedTitle)) {
 					return true;
 				}
 			}
@@ -136,9 +135,9 @@ public class WaitHelper {
 
 	public String waitForTextToNotBe(By locator, String unwantedText, int timeoutSeconds) {
 		AtomicReference<String> result = new AtomicReference<>();
-		getWait(timeoutSeconds).until(driver -> {
+		getWait(timeoutSeconds).until(d -> {
 			try {
-				String actual = driver.findElement(locator).getText().trim();
+				String actual = d.findElement(locator).getText().trim();
 				if (!actual.isEmpty() && !actual.equalsIgnoreCase(unwantedText)) {
 					result.set(actual);
 					return true;
@@ -153,9 +152,9 @@ public class WaitHelper {
 
 	public String waitForTextToBe(By locator, String expectedText, int timeoutSeconds) {
 		AtomicReference<String> result = new AtomicReference<>();
-		getWait(timeoutSeconds).until(driver -> {
+		getWait(timeoutSeconds).until(d -> {
 			try {
-				String actual = driver.findElement(locator).getText().trim();
+				String actual = d.findElement(locator).getText().trim();
 				if (actual.equals(expectedText)) {
 					result.set(actual);
 					return true;

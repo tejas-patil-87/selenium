@@ -14,6 +14,12 @@ import org.slf4j.LoggerFactory;
 public class DBUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(DBUtils.class);
+	private static final String ADVISOR_ID_KEY = "auth.user.id";
+	private static final String CLIENT_CODE_KEY = "auth.client.code";
+	private static final String PRODUCT_CODE_KEY = "product.code";
+	private static final String ERROR_VALUE = "ERROR";
+
+	private DBUtils() {}
 
 	private static final String SUBSCRIPTION_QUERY = "SELECT 1 FROM MOSLACEAdvisioryDB..tbl_Subscription "
 			+ "WHERE ClientCode = ? AND InvestmentAmount = ? AND RTRIM(ProductCode) = ?";
@@ -35,7 +41,7 @@ public class DBUtils {
 	}
 
 	public static void cleanOtpData() {
-		cleanOtpData(ConfigReader.get("auth.user.id"), ConfigReader.get("auth.client.code"), ExcelDataReader.get("product.code"));
+		cleanOtpData(ConfigReader.get(ADVISOR_ID_KEY), ConfigReader.get(CLIENT_CODE_KEY), ExcelDataReader.get(PRODUCT_CODE_KEY));
 	}
 
 	public static void cleanOtpData(String advisorId, String clientCode, String productCode) {
@@ -60,8 +66,8 @@ public class DBUtils {
 	}
 
 	public static boolean isSubscriptionDataPresent(int investmentAmount) {
-		String clientCode = ConfigReader.get("auth.client.code");
-		String productCode = ExcelDataReader.get("product.code");
+		String clientCode = ConfigReader.get(CLIENT_CODE_KEY);
+		String productCode = ExcelDataReader.get(PRODUCT_CODE_KEY);
 		return isSubscriptionDataPresent(investmentAmount, clientCode, productCode);
 	}
 
@@ -87,7 +93,7 @@ public class DBUtils {
 	}
 
 	public static void cleanClientData() {
-		cleanClientData(ConfigReader.get("auth.client.code"), ExcelDataReader.get("product.code"));
+		cleanClientData(ConfigReader.get(CLIENT_CODE_KEY), ExcelDataReader.get(PRODUCT_CODE_KEY));
 	}
 
 	public static void executeVendorResponseUpdate(String clientCode, String productCode) {
@@ -144,7 +150,7 @@ public class DBUtils {
 			}
 		} catch (SQLException e) {
 			log.warn("Failed to fetch ClientAdvice for ClientCode={}, ProductCode={}: {}", clientCode, productCode, e.getMessage());
-			return new String[] { "ERROR", "ERROR" };
+			return new String[] { ERROR_VALUE, ERROR_VALUE };
 		}
 	}
 
@@ -166,12 +172,12 @@ public class DBUtils {
 			}
 		} catch (SQLException e) {
 			log.warn("Failed to fetch OrderReqSummary for ClientCode={}, ProductCode={}: {}", clientCode, productCode, e.getMessage());
-			return "ERROR";
+			return ERROR_VALUE;
 		}
 	}
 
 	public static List<String[]> fetchBulkClients(String productCode, int limit) {
-		String advisorId = ConfigReader.get("auth.user.id");
+		String advisorId = ConfigReader.get(ADVISOR_ID_KEY);
 		List<String[]> rows = new ArrayList<>();
 		String sql = "EXEC [MOSLACEAdvisioryDB].[dbo].[usp_GetNewClientsForProduct_UAT] @ProductCode = ?, @AdvisorId = ?, @Limit = ?";
 		try (Connection conn = getConnection();
@@ -198,7 +204,7 @@ public class DBUtils {
 	}
 
 	public static void releaseBulkRunLocks(String productCode) {
-		String advisorId = ConfigReader.get("auth.user.id");
+		String advisorId = ConfigReader.get(ADVISOR_ID_KEY);
 		try (Connection conn = getConnection();
 				PreparedStatement ps = conn.prepareStatement(
 						"EXEC [MOSLACEAdvisioryDB].[dbo].[usp_ReleaseBulkRunLocks] @ProductCode = ?, @AdvisorId = ?")) {

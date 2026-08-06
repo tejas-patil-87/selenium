@@ -37,11 +37,11 @@ public class BaseTest {
 		log.info("UAT health check passed — HTTP {}", status);
 
 		ExecutorService executor = Executors.newFixedThreadPool(5);
-		executor.submit(() -> TestUtils.cleanScreenshotDirectory());
-		executor.submit(() -> TestUtils.deleteAllZipFiles());
-		executor.submit(() -> TestUtils.cleanLogFiles());
-		executor.submit(() -> TestUtils.cleanAllureResults());
-		executor.submit(() -> TestUtils.cleanReportFiles());
+		executor.submit(TestUtils::cleanScreenshotDirectory);
+		executor.submit(TestUtils::deleteAllZipFiles);
+		executor.submit(TestUtils::cleanLogFiles);
+		executor.submit(TestUtils::cleanAllureResults);
+		executor.submit(TestUtils::cleanReportFiles);
 		executor.shutdown();
 		try {
 			executor.awaitTermination(30, TimeUnit.SECONDS);

@@ -33,9 +33,9 @@ public class LoginPage extends BasePage {
 		waitHelper.click(loginBtn, FrameworkConstants.DEFAULT_TIMEOUT);
 	}
 
-	private void fillOTP(List<WebElement> otpFields, String OTP, By locator) {
+	private void fillOTP(List<WebElement> otpFields, String otp, By locator) {
 		waitHelper.waitForVisibility(locator, FrameworkConstants.DEFAULT_TIMEOUT);
-		TestUtils.fillOTP(otpFields, OTP);
+		TestUtils.fillOTP(otpFields, otp);
 	}
 
 	private static final By ADVISOR_OTP_BY = By.xpath("//div[contains(@class,'advisor-otp-wrapper')]//div[contains(@class,'otp-field')]//input[starts-with(@id,'otp-field')]");

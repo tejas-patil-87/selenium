@@ -1,7 +1,6 @@
 package pages;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -54,7 +53,7 @@ public class ProductPage extends BasePage {
 				.map(e -> e.getAttribute("title"))
 				.filter(t -> t != null && !t.trim().isEmpty())
 				.map(String::trim)
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	private static final String PRODUCT_CARD_BY_TITLE = "//div[contains(@class,'product-card')][.//div[contains(@class,'card_tooltip') and @title='%s']]";

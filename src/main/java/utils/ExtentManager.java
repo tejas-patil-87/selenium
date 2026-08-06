@@ -5,13 +5,18 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.aventstack.extentreports.reporter.configuration.Theme;
 
 public class ExtentManager {
 
+	private static final Logger log = LoggerFactory.getLogger(ExtentManager.class);
 	private static ExtentReports extent;
+
+	private ExtentManager() {}
 
 	public static synchronized ExtentReports getExtent() {
 		if (extent == null) {
@@ -25,7 +30,8 @@ public class ExtentManager {
 			try {
 				byte[] bytes = Files.readAllBytes(Paths.get(logoPath));
 				logoBase64 = Base64.getEncoder().encodeToString(bytes);
-			} catch (Exception e) {
+			} catch (java.io.IOException e) {
+				log.warn("Logo not found at {}: {}", logoPath, e.getMessage());
 			}
 
 			reporter.config().setReportName("IMP Automation Report");

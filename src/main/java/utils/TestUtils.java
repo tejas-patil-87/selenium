@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
@@ -36,7 +39,8 @@ public class TestUtils {
 			log.warn("Driver is null. Cannot take screenshot for: {}", testName);
 			return "";
 		}
-		String timestamp = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss").format(new Date());
+		String timestamp = LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
+				.format(DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss"));
 		String fileName = testName + "_" + timestamp + ".png";
 		String fullPath = FrameworkConstants.SCREENSHOT_DIR + fileName;
 		try {
@@ -63,7 +67,13 @@ public class TestUtils {
 		File[] files = dir.listFiles();
 		if (files == null || files.length == 0) return;
 		for (File file : files) {
-			if (file.isFile() && filter.test(file)) file.delete();
+			if (file.isFile() && filter.test(file)) {
+				try {
+					Files.delete(file.toPath());
+				} catch (IOException e) {
+					log.warn("Failed to delete file {}: {}", file.getName(), e.getMessage());
+				}
+			}
 		}
 		log.info("{} directory cleaned", logLabel);
 	}
@@ -98,7 +108,8 @@ public class TestUtils {
 			return;
 		}
 		new File(FrameworkConstants.ZIP_DIR).mkdirs();
-		String timestamp = new SimpleDateFormat("dd-MM-yyyy-_HH-mm-ss").format(new Date());
+		String timestamp = LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
+				.format(DateTimeFormatter.ofPattern("dd-MM-yyyy-_HH-mm-ss"));
 		String zipPath = FrameworkConstants.ZIP_DIR + "screenshots_" + timestamp + ".zip";
 		try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath))) {
 			for (File file : files) {

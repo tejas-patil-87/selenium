@@ -17,9 +17,14 @@ import utils.FrameworkConstants;
 public class DriverFactory {
 	private static final Logger log = LoggerFactory.getLogger(DriverFactory.class);
 	private static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
+	private static final String BROWSER_KEY = "browser";
+	private static final String HEADLESS_ARG = "--headless=new";
+	private static final String WINDOW_SIZE_ARG = "--window-size=1920,1080";
+
+	private DriverFactory() {}
 
 	private static WebDriver createBrowser() {
-		String browser = ConfigReader.get("browser").toLowerCase();
+		String browser = ConfigReader.get(BROWSER_KEY).toLowerCase();
 		boolean headless = "true".equals(ConfigReader.get("browser.headless"));
 		WebDriver driver;
 		switch (browser) {
@@ -27,8 +32,8 @@ public class DriverFactory {
 			ChromeOptions chromeOptions = new ChromeOptions();
 			chromeOptions.addArguments("--start-maximized");
 			if (headless) {
-				chromeOptions.addArguments("--headless=new");
-				chromeOptions.addArguments("--window-size=1920,1080");
+				chromeOptions.addArguments(HEADLESS_ARG);
+				chromeOptions.addArguments(WINDOW_SIZE_ARG);
 			}
 			driver = new ChromeDriver(chromeOptions);
 			break;
@@ -40,13 +45,13 @@ public class DriverFactory {
 		case "edge":
 			EdgeOptions edgeOptions = new EdgeOptions();
 			if (headless) {
-				edgeOptions.addArguments("--headless=new");
-				edgeOptions.addArguments("--window-size=1920,1080");
+				edgeOptions.addArguments(HEADLESS_ARG);
+				edgeOptions.addArguments(WINDOW_SIZE_ARG);
 			}
 			driver = new EdgeDriver(edgeOptions);
 			break;
 		default:
-			throw new RuntimeException("Unsupported browser: " + browser);
+			throw new IllegalArgumentException("Unsupported browser: " + browser);
 		}
 		return driver;
 	}
@@ -56,7 +61,7 @@ public class DriverFactory {
 		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(0));
 		String launchUrl = ConfigReader.get("app.base.url") + ConfigReader.get("app.login.path");
 		driver.get(launchUrl);
-		log.info("Browser [{}] launched and navigated to {}", ConfigReader.get("browser"), launchUrl);
+		log.info("Browser [{}] launched and navigated to {}", ConfigReader.get(BROWSER_KEY), launchUrl);
 	}
 
 	public static void initDriver() {
@@ -99,12 +104,12 @@ public class DriverFactory {
 	}
 
 	public static void warmupDriver() {
-		String browser = ConfigReader.get("browser").toLowerCase();
+		String browser = ConfigReader.get(BROWSER_KEY).toLowerCase();
 		WebDriver driver;
 		switch (browser) {
 		case "chrome":
 			ChromeOptions opts = new ChromeOptions();
-			opts.addArguments("--headless=new", "--window-size=1920,1080");
+			opts.addArguments(HEADLESS_ARG, WINDOW_SIZE_ARG);
 			driver = new ChromeDriver(opts);
 			break;
 		case "firefox":
@@ -114,7 +119,7 @@ public class DriverFactory {
 			break;
 		case "edge":
 			EdgeOptions eopts = new EdgeOptions();
-			eopts.addArguments("--headless=new", "--window-size=1920,1080");
+			eopts.addArguments(HEADLESS_ARG, WINDOW_SIZE_ARG);
 			driver = new EdgeDriver(eopts);
 			break;
 		default:

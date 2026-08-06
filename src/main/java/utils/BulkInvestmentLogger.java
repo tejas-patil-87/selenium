@@ -30,11 +30,10 @@ public class BulkInvestmentLogger {
 
 	public static synchronized void log(String clientCode, String productCode, String investmentAmount,
 			boolean subscriptionVerified, String adviceStatus, String isConfirmed) {
+		File file = new File(LOG_FILE);
+		file.getParentFile().mkdirs();
 		try {
 			Workbook workbook;
-			File file = new File(LOG_FILE);
-			file.getParentFile().mkdirs();
-
 			if (file.exists()) {
 				try (FileInputStream fis = new FileInputStream(file)) {
 					workbook = new XSSFWorkbook(fis);
@@ -42,27 +41,25 @@ public class BulkInvestmentLogger {
 			} else {
 				workbook = new XSSFWorkbook();
 			}
-
-			Sheet sheet = workbook.getSheet(SHEET_NAME);
-			if (sheet == null) {
-				sheet = workbook.createSheet(SHEET_NAME);
-				writeHeaders(workbook, sheet);
+			try (Workbook wb = workbook) {
+				Sheet sheet = wb.getSheet(SHEET_NAME);
+				if (sheet == null) {
+					sheet = wb.createSheet(SHEET_NAME);
+					writeHeaders(wb, sheet);
+				}
+				int nextRow = sheet.getLastRowNum() + 1;
+				Row row = sheet.createRow(nextRow);
+				row.createCell(0).setCellValue(clientCode);
+				row.createCell(1).setCellValue(productCode);
+				row.createCell(2).setCellValue(investmentAmount);
+				row.createCell(3).setCellValue(subscriptionVerified ? "YES" : "NO");
+				row.createCell(4).setCellValue(adviceStatus);
+				row.createCell(5).setCellValue(isConfirmed);
+				row.createCell(6).setCellValue(LocalDateTime.now(java.time.ZoneId.of("Asia/Kolkata")).format(FORMATTER));
+				try (FileOutputStream fos = new FileOutputStream(file)) {
+					wb.write(fos);
+				}
 			}
-
-			int nextRow = sheet.getLastRowNum() + 1;
-			Row row = sheet.createRow(nextRow);
-			row.createCell(0).setCellValue(clientCode);
-			row.createCell(1).setCellValue(productCode);
-			row.createCell(2).setCellValue(investmentAmount);
-			row.createCell(3).setCellValue(subscriptionVerified ? "YES" : "NO");
-			row.createCell(4).setCellValue(adviceStatus);
-			row.createCell(5).setCellValue(isConfirmed);
-			row.createCell(6).setCellValue(LocalDateTime.now().format(FORMATTER));
-
-			try (FileOutputStream fos = new FileOutputStream(file)) {
-				workbook.write(fos);
-			}
-			workbook.close();
 		} catch (Exception e) {
 			log.error("Failed to write bulk investment log for ClientCode={}: {}", clientCode, e.getMessage(), e);
 		}

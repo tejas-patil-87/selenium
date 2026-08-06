@@ -1,4 +1,4 @@
-package utils;
+﻿package utils;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,9 +11,9 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;`r`nimport org.slf4j.Logger;`r`nimport org.slf4j.LoggerFactory;
 
-public class BulkClientFetcher {
+public class BulkClientFetcher {`r`n`r`n`tprivate static final Logger log = LoggerFactory.getLogger(BulkClientFetcher.class);
 
 	private static final String EXCEL_PATH = "src/main/resources/testdata.xlsx";
 	private static final String SHEET_NAME = "BulkClients";
@@ -26,9 +26,9 @@ public class BulkClientFetcher {
 		String productCode = ConfigReader.get("bulk.client.product.code");
 		int limit = Integer.parseInt(ConfigReader.get("bulk.client.limit"));
 
-		System.out.println("Fetching up to " + limit + " clients for ProductCode=" + productCode + " ...");
+		log.info("Fetching up to {} clients for ProductCode={} ...", limit, productCode);
 		List<String[]> clients = DBUtils.fetchBulkClients(productCode, limit);
-		System.out.println("Fetched: " + clients.size() + " clients");
+		log.info("Fetched: {} clients", clients.size());
 
 		writeToExcel(clients);
 		System.out.println("Done — sheet '" + SHEET_NAME + "' written to " + EXCEL_PATH);
@@ -76,3 +76,4 @@ public class BulkClientFetcher {
 		workbook.close();
 	}
 }
+
