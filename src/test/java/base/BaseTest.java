@@ -27,6 +27,8 @@ public class BaseTest {
 
 	@BeforeSuite(alwaysRun = true)
 	public void suiteSetup() {
+		DriverFactory.warmupDriver();
+
 		String url = ConfigReader.get("app.base.url");
 		int status = RestAssured.given().get(url).getStatusCode();
 		if (status != 200) {

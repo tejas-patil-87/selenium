@@ -97,4 +97,31 @@ public class DriverFactory {
 			log.info("Instance browser quit");
 		}
 	}
+
+	public static void warmupDriver() {
+		String browser = ConfigReader.get("browser").toLowerCase();
+		WebDriver driver;
+		switch (browser) {
+		case "chrome":
+			ChromeOptions opts = new ChromeOptions();
+			opts.addArguments("--headless=new", "--window-size=1920,1080");
+			driver = new ChromeDriver(opts);
+			break;
+		case "firefox":
+			FirefoxOptions fopts = new FirefoxOptions();
+			fopts.addArguments("--headless");
+			driver = new FirefoxDriver(fopts);
+			break;
+		case "edge":
+			EdgeOptions eopts = new EdgeOptions();
+			eopts.addArguments("--headless=new", "--window-size=1920,1080");
+			driver = new EdgeDriver(eopts);
+			break;
+		default:
+			log.warn("warmupDriver: unsupported browser '{}', skipping warmup", browser);
+			return;
+		}
+		driver.quit();
+		log.info("Driver warmup complete — ChromeDriver cached and ready");
+	}
 }

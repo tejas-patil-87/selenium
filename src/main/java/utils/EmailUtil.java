@@ -75,23 +75,6 @@ public final class EmailUtil {
 		multipart.addBodyPart(attachment);
 	}
 
-	private static void attachLatestReport(Multipart multipart, String dirPath) throws Exception {
-		File dir = new File(dirPath);
-		if (!dir.exists() || !dir.isDirectory()) {
-			log.warn("Report directory not found: {}", dirPath);
-			return;
-		}
-		File[] reports = dir.listFiles((d, name) -> name.startsWith("IMP-Automation-Report") && name.endsWith(".html"));
-		if (reports == null || reports.length == 0) {
-			log.warn("No IMP report files found in: {}", dirPath);
-			return;
-		}
-		File latest = Arrays.stream(reports).max(Comparator.comparingLong(File::lastModified)).get();
-		MimeBodyPart attachment = new MimeBodyPart();
-		attachment.attachFile(latest);
-		multipart.addBodyPart(attachment);
-	}
-
 	private static void attachLatestZip(Multipart multipart, String dirPath) throws Exception {
 		File dir = new File(dirPath);
 		if (!dir.exists() || !dir.isDirectory()) {

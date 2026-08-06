@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE suite SYSTEM "https://testng.org/testng.dtd">
-<suite name="Multi-Client Investment Suite">
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Multi-Client Investment Suite" verbose="1">
     <test name="Multi Client Investment">
         <classes>
             <class name="tests.MultiClientInvestmentTest"/>
